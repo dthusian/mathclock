@@ -1,0 +1,11 @@
+- `1->2` similar triangles
+- `2->4` special triangles
+- `4->3` pythagorean theorem
+- `4->5` sin/cos law
+- `5->6` sin/cos law
+- `6->7` 20, sqrt276, 26 triangle
+- `->8` ??
+- `->9` ??
+- `->10` ??
+- `->11` ??
+- `->12` ??

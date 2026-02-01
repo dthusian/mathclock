@@ -4,7 +4,10 @@ const ctx = canvas.getContext("2d") || (() => { throw new Error("No context foun
 function deg(x) {
     return ((x - 90) / 180) * Math.PI;
 }
-function invdeg(x) {
+function invdegRel(x) {
+    return (x / Math.PI) * 180;
+}
+function invdegAbs(x) {
     return (x / Math.PI) * 180 + 90;
 }
 function normalizeDir(x) {
@@ -41,7 +44,7 @@ class Vector {
         return Math.sqrt(this.x ** 2 + this.y ** 2);
     }
     dir() {
-        return invdeg(Math.atan2(this.y, this.x));
+        return invdegAbs(Math.atan2(this.y, this.x));
     }
     dirRaw() {
         return Math.atan2(this.y, this.x);
@@ -201,22 +204,21 @@ function markRightAngle(l, dir, profile) {
     line(l.p1.moveTo(markA), l.p1.moveTo(markAB)).draw(profile || "marker");
     line(l.p1.moveTo(markB), l.p1.moveTo(markAB)).draw(profile || "marker");
 }
-function markAngle(l1, l2, ccw, profile) {
+function markAngle(l1, l2, count, ccw, profile) {
     const MARK_RADIUS = 15;
+    const MARK_STEP = 5;
     setDrawSettings(profile || "marker");
-    ctx.beginPath();
-    ctx.arc(l1.p1.x, l1.p1.y, MARK_RADIUS, l1.vec().dirRaw(), l2.vec().dirRaw(), !!ccw);
-    ctx.stroke();
+    for (let i = 0; i < count; i++) {
+        ctx.beginPath();
+        ctx.arc(l1.p1.x, l1.p1.y, MARK_RADIUS + i * MARK_STEP, l1.vec().dirRaw(), l2.vec().dirRaw(), !!ccw);
+        ctx.stroke();
+    }
 }
 const center = point(canvas.width / 2, canvas.height / 2);
 // application
 const large = 10000;
 const R1a = 200;
 const R1b = R1a + 20;
-// reference lines
-for (let i = 0; i < 12; i++) {
-    center.lineTowards(i * 30, 180).draw("debug");
-}
 // 1->2
 // solve ssa triangle so that line segment is trisected
 const R2a = (() => {
@@ -235,7 +237,6 @@ const l2 = line(center.moveTowards(60, R2a), center.moveTowards(60, R2b));
 const l2img = l2.p1.lineTowards(30, R2b - R2a).draw().drawCircle();
 const l2a = line(l1.p1, l2img.p2).draw();
 const l2b = line(l1.p2, l2img.p1).draw();
-console.log(l2b.vec().length(), l2img.vec().length());
 markArrows(l1ext, 1);
 markArrows(l2img, 1, 5);
 markHatches(l2b, 1, -45);
@@ -265,14 +266,15 @@ markArrows(l4img, 2);
 const l3img = l4.p1.moveTowards(0, 80).lineTowards(90, 60).draw();
 const l3hyp = line(l4.p1, l3img.p2).draw();
 const l3residue = l3img.p2.lineTowards(0, 20).drawCircle();
+markAngle(l3hyp, l4down1.reverse(), 2, true);
 markRightAngle(l3img, 1);
 markRightAngle(l3img, -1);
 const l3p = l3img.p1.moveTowards(0, 40);
 const l3a = l3p.lineTowards(0, 40);
 const l3c = l3p.lineUntilIntersect(135, l3img).draw();
 const l3d = l3p.lineTowards(180, 40);
-markAngle(l3c, l3d);
-markAngle(l3c.reverse(), l3img.reverse(), true);
+markAngle(l3c, l3d, 1);
+markAngle(l3c.reverse(), l3img.reverse(), 1, true);
 markHatches(l3d, 1, 2);
 const l3ray = center.lineTowards(90, large);
 const l3proj = l3img.p2.lineUntilIntersect(0, l3ray).draw();
@@ -282,4 +284,34 @@ markRightAngle(l3proj, -1);
 markRightAngle(l3proj.reverse(), 1);
 markHatches(l3img2, 2, 5);
 markHatches(l3, 2, 0, "important");
-[l1, l2, l3, l4].forEach(v => v.draw("important"));
+// 4->5
+const l5ray = center.lineTowards(150, large);
+const l5angle1 = 150 - invdegRel(Math.asin(3 / 5)) + 90; // ensure sin beta = 3/5
+// fake tri1 to figure out the dimensions of the real one
+const l5tri1a = l4down1.p2.lineTowards(l5angle1, 60);
+const l5tri1b = l5tri1a.p2.lineTowards(l5tri1a.vec().dir() + 90, Math.sqrt(7) * 20);
+const l5tri1c = line(l5tri1b.p2, l4down1.p2).draw();
+// offset the real tri1
+const l5offa = 45;
+const l5off1 = l5tri1c.p1.lineTowards(l5tri1c.vec().dir() + 90, l5offa).draw();
+const l5off2 = l5tri1c.p2.lineTowards(l5tri1c.vec().dir() + 90, l5offa).draw();
+markRightAngle(l5off1, -1);
+markRightAngle(l5off2, 1);
+markRightAngle(l5off2.reverse(), -1);
+// real tri1
+const l5tri1ra = l5off2.p2.lineTowards(l5angle1, 60).draw();
+const l5tri1rb = line(l5tri1ra.p2, l5off1.p2).draw();
+const l5tri1rc = line(l5off1.p2, l5off2.p2).draw();
+markRightAngle(l5tri1rb, 1);
+markHatches(l5tri1ra, 2, 0);
+const l5tri2a = l5tri1rb.p2.lineUntilIntersect(l5tri1c.vec().dir(), l5ray).draw();
+const l5tri2b = l5tri1rb.p2.lineUntilIntersect(l5tri1b.vec().dir(), l5ray).draw();
+const l5tri2c = line(l5tri2a.p2, l5tri2b.p2);
+const l5 = l5tri2c;
+markAngle(l5.reverse(), l5tri2b.reverse(), 2, true);
+console.log(l5tri2a.vec().length());
+[l1, l2, l3, l4, l5].forEach(v => v.draw("important"));
+// ref lines
+for (let i = 0; i < 12; i++) {
+    center.lineTowards(i * 30, 180).draw("debug");
+}
