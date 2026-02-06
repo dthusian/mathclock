@@ -351,36 +351,16 @@ markHatches(l3, 2, 0, "important");
 
 // 4->5
 
-const l5ray = center.lineTowards(150, large);
-const l5angle1 = 150 - invdegRel(Math.asin(3/5)) + 90; // ensure sin beta = 3/5
-// fake tri1 to figure out the dimensions of the real one
-const l5tri1a = l4down1.p2.lineTowards(l5angle1, 60);
-const l5tri1b = l5tri1a.p2.lineTowards(l5tri1a.vec().dir() + 90, Math.sqrt(7) * 20);
-const l5tri1c = line(l5tri1b.p2, l4down1.p2).draw();
-// offset the real tri1
-const l5offa = 45; //TODO only 1 correct value for this
-const l5off1 = l5tri1c.p1.lineTowards(l5tri1c.vec().dir() + 90, l5offa).draw();
-const l5off2 = l5tri1c.p2.lineTowards(l5tri1c.vec().dir() + 90, l5offa).draw();
-markRightAngle(l5off1, -1);
-markRightAngle(l5off2, 1);
-markRightAngle(l5off2.reverse(), -1);
-// real tri1
-const l5tri1ra = l5off2.p2.lineTowards(l5angle1, 60).draw();
-const l5tri1rb = line(l5tri1ra.p2, l5off1.p2).draw();
-const l5tri1rc = line(l5off1.p2, l5off2.p2).draw();
-markRightAngle(l5tri1rb, 1);
-markHatches(l5tri1ra, 2, 0);
-
-const l5tri2a = l5tri1rb.p2.lineUntilIntersect(l5tri1c.vec().dir(), l5ray).draw();
-const l5tri2b = l5tri1rb.p2.lineUntilIntersect(l5tri1b.vec().dir(), l5ray).draw();
-const l5tri2c = line(l5tri2a.p2, l5tri2b.p2);
-const l5 = l5tri2c;
-markAngle(l5.reverse(), l5tri2b.reverse(), 2, true);
-console.log(l5tri2a.vec().length());
+const parm = Math.sqrt(12);
+const l5 = center.moveTowards(150, 200).lineTowards(150, 100);
+const l5dirc = 150 - (180 - invdegRel(Math.asin(parm/5)));
+const l5dirb = l5dirc + invdegRel(Math.asin(parm/4));
+const l5tri1b = l5.p1.lineTowards(l5dirb, 80).draw();
+const l5tri1c = line(l5.p2, l5tri1b.p2).draw();
 
 [l1, l2, l3, l4, l5].forEach(v => v.draw("important"));
 
 // ref lines
-for(let i = 0; i < 12; i++) {
+for(let i = 0; i < 12; i++) {1
   center.lineTowards(i * 30, 180).draw("debug");
 }

@@ -4,8 +4,8 @@
 - `4->5` sin/cos law
 - `5->6` sin/cos law
 - `6->7` 20, sqrt276, 26 triangle
-- `->8` ??
-- `->9` ??
-- `->10` ??
-- `->11` ??
-- `->12` ??
+- `->8` geoseries inf sum
+- `->9` rcp squares inf sum
+- `->10` inf sum k*z^k = z/(1-z)^2 (polylogarithm sum), z = 4/5 so sum = 20, add coeff of 1/2
+- `->11`
+- `->12`
