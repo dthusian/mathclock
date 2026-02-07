@@ -317,7 +317,6 @@ const l4down1 = l4tri2c.p1.lineUntilIntersect(180, l4ray).draw();
 const l4down2 = l4tri2c.p2.lineUntilIntersect(180, l4ray).draw();
 const l4img = line(l4down1.p2, l4down2.p2).draw().drawCircle();
 const l4 = l4down1.p2.lineTowards(300, 80);
-
 markArrows(l4img, 2);
 
 // 4->3
@@ -326,6 +325,7 @@ const l3img = l4.p1.moveTowards(0, 80).lineTowards(90, 60).draw();
 const l3hyp = line(l4.p1, l3img.p2).draw();
 const l3residue = l3img.p2.lineTowards(0, 20).drawCircle();
 
+markAngle(l3hyp, l4down1.reverse(), 2, true);
 markRightAngle(l3img, 1);
 markRightAngle(l3img, -1);
 
@@ -348,20 +348,47 @@ markRightAngle(l3proj.reverse(), 1);
 markHatches(l3img2, 2, 5);
 markHatches(l3, 2, 0, "important");
 
-// 4->5
-// 45-60-75 triangle
-// sin a = sin(45) = 1/sqrt(2), sin b = sin(60) = sqrt(3)/2
-// A = 5, B = A*sin(60)/sin(45) = 5*sqrt(3)*sqrt(2)/2 = 5*sqrt(6)/2
-// 45-?-? triangle
-// sin a = sin(60) = sqrt(3)/2, sin b = 3/5
-// A = 5, B = 5*3/5*2/sqrt(3) = sqrt(12)
-const l5 = center.moveTowards(150, 240).lineTowards(150, 100);
-const asin35 = invdegRel(Math.asin(3/5));
-const l5tri1cray = l5.p1.lineTowards(150 - asin35, large);
-const l5tri1bray = l5.p2.lineTowards(150 - asin35 - 60, large);
-const l5tri1p = l5tri1bray.intersect(l5tri1cray);
-const l5tri1c = line(l5.p1, l5tri1p).draw();
-const l5tri1b = line(l5.p2, l5tri1p).draw();
+function p5() {
+  // 4->5
+  // sin a = sin(60) = sqrt(3)/2, sin b = 3/5
+  // A = 5, B = 5*3/5*2/sqrt(3) = sqrt(12)
+  const asin35 = invdegRel(Math.asin(3/5));
+  const tangentDir = 150 - asin35;
+  const tangentPoint = l4down1.p2.moveTowards(tangentDir + 90, 80);
+  const l5ray = center.lineTowards(150, large);
+  const startPoint = tangentPoint.moveUntilIntersect(tangentDir + 180, l5ray);
+
+  const l5 = startPoint.lineTowards(150, 100);
+  const tri1a = l5;
+  const tri1cray = l5.p1.lineTowards(tangentDir, large);
+  const tri1bray = l5.p2.lineTowards(tangentDir - 60, large);
+  const tri1p = tri1bray.intersect(tri1cray);
+  const tri1c = line(l5.p1, tri1p).draw();
+  const tri1b = line(l5.p2, tri1p).draw();
+  markAngle(tri1a, tri1c, 2, true);
+  
+  const tri2b = tri1b;
+  const tri2a = tri2b.p2.lineTowards(tri2b.vec().dir() + 90, 40).draw();
+  const tri2h = tri2b.p1.lineTowards(tri2b.vec().dir() + 30, 80).draw();
+  markRightAngle(tri2b.reverse(), -1);
+  markHatches(tri2a, 1, 3);
+
+  const tri3a = tri2a.p2.lineTowards(tri2a.vec().dir(), 40).draw();
+  const tri3b = tri2h.p2.lineTowards(tri2h.vec().dir(), 40).draw();
+  const tri3c = line(tri3a.p2, tri3b.p2).draw();
+  markHatches(tri3a, 1, -3);
+  markHatches(tri3b, 1, -3);
+  markHatches(tri3c, 1);
+
+  const mark = tri1c.p2.lineTowards(tri1c.vec().dir(), 100).draw();
+  markRightAngle(tri3c.reverse(), -1);
+  const mark2 = line(tri2h.mid(), tri3a.p2).draw();
+  markHatches(tri2h, 1, -13);
+  markHatches(tri2h, 1, 23);
+  
+  return l5;
+}
+const l5 = p5();
 
 [l1, l2, l3, l4, l5].forEach(v => v.draw("important"));
 
