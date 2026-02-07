@@ -260,101 +260,115 @@ function markAngle(l1: Line, l2: Line, count: number, ccw?: boolean, profile?: s
 
 const center = point(canvas.width / 2, canvas.height / 2);
 
-// application
+// ====== application ======
 
 const large = 10000;
-const R1a = 200;
-const R1b = R1a + 20;
 
 // 1->2
 
-// solve ssa triangle so that line segment is trisected
-const R2a = (() => {
-  let a = R1b;
-  let b = 120;
-  let beta = 30 / 180 * Math.PI;
-  let alpha = Math.asin((a / b) * Math.sin(beta));
-  let gamma = Math.PI - alpha - beta;
-  let c = b * Math.sin(gamma) / Math.sin(beta);
-  return c;
-})();
-const R2b = R2a + 40;
+function p1_p2(): [Line, Line] {
+  // solve ssa triangle so that line segment is trisected
+  const R1a = 200;
+  const R1b = R1a + 20;
+  const R2a = (() => {
+    let a = R1b;
+    let b = 120;
+    let beta = 30 / 180 * Math.PI;
+    let alpha = Math.asin((a / b) * Math.sin(beta));
+    let gamma = Math.PI - alpha - beta;
+    let c = b * Math.sin(gamma) / Math.sin(beta);
+    return c;
+  })();
+  const R2b = R2a + 40;
 
-const l1 = line(center.moveTowards(30, R1a), center.moveTowards(30, R1b));
-const l1ext = l1.p2.lineTo(l1.vec().scale(2)).draw();
-const l2 = line(center.moveTowards(60, R2a), center.moveTowards(60, R2b));
-const l2img = l2.p1.lineTowards(30, R2b - R2a).draw().drawCircle();
-const l2a = line(l1.p1, l2img.p2).draw();
-const l2b = line(l1.p2, l2img.p1).draw();
+  const l1 = line(center.moveTowards(30, R1a), center.moveTowards(30, R1b));
+  const l1ext = l1.p2.lineTo(l1.vec().scale(2)).draw();
+  const l2 = line(center.moveTowards(60, R2a), center.moveTowards(60, R2b));
+  const l2img = l2.p1.lineTowards(30, R2b - R2a).draw().drawCircle();
+  const l2a = line(l1.p1, l2img.p2).draw();
+  const l2b = line(l1.p2, l2img.p1).draw();
 
-markArrows(l1ext, 1);
-markArrows(l2img, 1, 5);
-markHatches(l2b, 1, -45);
-markHatches(l2b, 1, 5);
-markHatches(l2b, 1, 40);
+  markArrows(l1ext, 1);
+  markArrows(l2img, 1, 5);
+  markHatches(l2b, 1, -45);
+  markHatches(l2b, 1, 5);
+  markHatches(l2b, 1, 40);
+
+  return [l1, l2];
+}
+const [_l1, _l2] = p1_p2();
 
 // 2->4
+function p4(l2end: Point): [Line, Line] {
+  const tri1a = l2end.lineTowards(120, 40).draw();
+  const tri1b = l2end.lineTowards(60, 40).draw();
+  const tri1c = line(tri1a.p2, tri1b.p2).draw();
 
-const l4tri1a = l2.p2.lineTowards(120, 40).draw();
-const l4tri1b = l2.p2.lineTowards(60, 40).draw();
-const l4tri1c = line(l4tri1a.p2, l4tri1b.p2).draw();
+  markHatches(tri1a, 1);
+  markHatches(tri1b, 1);
+  markHatches(tri1c, 1);
 
-markHatches(l4tri1a, 1);
-markHatches(l4tri1b, 1);
-markHatches(l4tri1c, 1);
+  const tri2a = tri1a.p2.lineTowards(180, 40).draw();
+  const tri2b = tri1a.p2.lineTowards(120, 80).draw();
+  const tri2c = line(tri2a.p2, tri2b.p2).draw();
 
-const l4tri2a = l4tri1a.p2.lineTowards(180, 40).draw();
-const l4tri2b = l4tri1a.p2.lineTowards(120, 80).draw();
-const l4tri2c = line(l4tri2a.p2, l4tri2b.p2).draw();
+  markHatches(tri2a, 1);
+  markArrows(tri2b, 2);
+  markRightAngle(tri2c, -1);
+  markRightAngle(tri2c.reverse(), -1);
 
-markHatches(l4tri2a, 1);
-markArrows(l4tri2b, 2);
-markRightAngle(l4tri2c, -1);
-markRightAngle(l4tri2c.reverse(), -1);
+  const l4ray = center.lineTowards(120, large);
+  const down1 = tri2c.p1.lineUntilIntersect(180, l4ray).draw();
+  const down2 = tri2c.p2.lineUntilIntersect(180, l4ray).draw();
+  const img = line(down1.p2, down2.p2).draw().drawCircle();
+  const l4 = down1.p2.lineTowards(300, 80);
+  markArrows(img, 2);
 
-const l4ray = center.lineTowards(120, large);
-const l4down1 = l4tri2c.p1.lineUntilIntersect(180, l4ray).draw();
-const l4down2 = l4tri2c.p2.lineUntilIntersect(180, l4ray).draw();
-const l4img = line(l4down1.p2, l4down2.p2).draw().drawCircle();
-const l4 = l4down1.p2.lineTowards(300, 80);
-markArrows(l4img, 2);
+  return [l4, down1];
+}
+const [_l4, _l4down1] = p4(_l2.p2);
 
 // 4->3
 
-const l3img = l4.p1.moveTowards(0, 80).lineTowards(90, 60).draw();
-const l3hyp = line(l4.p1, l3img.p2).draw();
-const l3residue = l3img.p2.lineTowards(0, 20).drawCircle();
+function p3(l4: Line, l4down1: Line): Line {
+  const img = l4.p1.moveTowards(0, 80).lineTowards(90, 60).draw();
+  const hyp = line(l4.p1, img.p2).draw();
+  const residue = img.p2.lineTowards(0, 20).drawCircle();
 
-markAngle(l3hyp, l4down1.reverse(), 2, true);
-markRightAngle(l3img, 1);
-markRightAngle(l3img, -1);
+  markAngle(hyp, l4down1.reverse(), 2, true);
+  markRightAngle(img, 1);
+  markRightAngle(img, -1);
 
-const l3p = l3img.p1.moveTowards(0, 40);
-const l3a = l3p.lineTowards(0, 40);
-const l3c = l3p.lineUntilIntersect(135, l3img).draw();
-const l3d = l3p.lineTowards(180, 40);
+  const p = img.p1.moveTowards(0, 40);
+  const a = p.lineTowards(0, 40);
+  const c = p.lineUntilIntersect(135, img).draw();
+  const d = p.lineTowards(180, 40);
 
-markAngle(l3c, l3d, 1);
-markAngle(l3c.reverse(), l3img.reverse(), 1, true);
-markHatches(l3d, 1, 2);
+  markAngle(c, d, 1);
+  markAngle(c.reverse(), img.reverse(), 1, true);
+  markHatches(d, 1, 2);
 
-const l3ray = center.lineTowards(90, large);
-const l3proj = l3img.p2.lineUntilIntersect(0, l3ray).draw();
-const l3img2 = l3proj.p2.lineTowards(-90, 60).draw();
-const l3 = l3img2.p2.lineTowards(-90, 60);
+  const l3ray = center.lineTowards(90, large);
+  const proj = img.p2.lineUntilIntersect(0, l3ray).draw();
+  const img2 = proj.p2.lineTowards(-90, 60).draw();
+  const l3 = img2.p2.lineTowards(-90, 60);
 
-markRightAngle(l3proj, -1);
-markRightAngle(l3proj.reverse(), 1);
-markHatches(l3img2, 2, 5);
-markHatches(l3, 2, 0, "important");
+  markRightAngle(proj, -1);
+  markRightAngle(proj.reverse(), 1);
+  markHatches(img2, 2, 5);
+  markHatches(l3, 2, 0, "important");
 
-function p5() {
+  return l3;
+}
+const _l3 = p3(_l4, _l4down1);
+
+function p5(l4center: Point): Line {
   // 4->5
   // sin a = sin(60) = sqrt(3)/2, sin b = 3/5
   // A = 5, B = 5*3/5*2/sqrt(3) = sqrt(12)
   const asin35 = invdegRel(Math.asin(3/5));
   const tangentDir = 150 - asin35;
-  const tangentPoint = l4down1.p2.moveTowards(tangentDir + 90, 80);
+  const tangentPoint = l4center.moveTowards(tangentDir + 90, 80);
   const l5ray = center.lineTowards(150, large);
   const startPoint = tangentPoint.moveUntilIntersect(tangentDir + 180, l5ray);
 
@@ -388,9 +402,9 @@ function p5() {
   
   return l5;
 }
-const l5 = p5();
+const _l5 = p5(_l4down1.p2);
 
-[l1, l2, l3, l4, l5].forEach(v => v.draw("important"));
+[_l1, _l2, _l3, _l4, _l5].forEach(v => v.draw("important"));
 
 // ref lines
 for(let i = 0; i < 12; i++) {
