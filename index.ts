@@ -326,7 +326,6 @@ const l3img = l4.p1.moveTowards(0, 80).lineTowards(90, 60).draw();
 const l3hyp = line(l4.p1, l3img.p2).draw();
 const l3residue = l3img.p2.lineTowards(0, 20).drawCircle();
 
-markAngle(l3hyp, l4down1.reverse(), 2, true);
 markRightAngle(l3img, 1);
 markRightAngle(l3img, -1);
 
@@ -350,17 +349,23 @@ markHatches(l3img2, 2, 5);
 markHatches(l3, 2, 0, "important");
 
 // 4->5
-
-const parm = Math.sqrt(12);
-const l5 = center.moveTowards(150, 200).lineTowards(150, 100);
-const l5dirc = 150 - (180 - invdegRel(Math.asin(parm/5)));
-const l5dirb = l5dirc + invdegRel(Math.asin(parm/4));
-const l5tri1b = l5.p1.lineTowards(l5dirb, 80).draw();
-const l5tri1c = line(l5.p2, l5tri1b.p2).draw();
+// 45-60-75 triangle
+// sin a = sin(45) = 1/sqrt(2), sin b = sin(60) = sqrt(3)/2
+// A = 5, B = A*sin(60)/sin(45) = 5*sqrt(3)*sqrt(2)/2 = 5*sqrt(6)/2
+// 45-?-? triangle
+// sin a = sin(60) = sqrt(3)/2, sin b = 3/5
+// A = 5, B = 5*3/5*2/sqrt(3) = sqrt(12)
+const l5 = center.moveTowards(150, 240).lineTowards(150, 100);
+const asin35 = invdegRel(Math.asin(3/5));
+const l5tri1cray = l5.p1.lineTowards(150 - asin35, large);
+const l5tri1bray = l5.p2.lineTowards(150 - asin35 - 60, large);
+const l5tri1p = l5tri1bray.intersect(l5tri1cray);
+const l5tri1c = line(l5.p1, l5tri1p).draw();
+const l5tri1b = line(l5.p2, l5tri1p).draw();
 
 [l1, l2, l3, l4, l5].forEach(v => v.draw("important"));
 
 // ref lines
-for(let i = 0; i < 12; i++) {1
+for(let i = 0; i < 12; i++) {
   center.lineTowards(i * 30, 180).draw("debug");
 }
