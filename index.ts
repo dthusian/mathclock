@@ -251,6 +251,10 @@ function markAngle(l1: Line, l2: Line, count: number, ccw?: boolean, profile?: s
   const MARK_RADIUS = 15;
   const MARK_STEP = 5;
   setDrawSettings(profile || "marker");
+  let angDiff = (l1.vec().dir() - l2.vec().dir()) * (ccw ? -1 : 1);
+  while(angDiff < 0) angDiff += 360;
+  while(angDiff > 360) angDiff -= 360;
+  //console.log(`markAngle: ${count} ${angDiff}`);
   for(let i = 0; i < count; i++) {
     ctx.beginPath();
     ctx.arc(l1.p1.x, l1.p1.y, MARK_RADIUS + i * MARK_STEP, l1.vec().dirRaw(), l2.vec().dirRaw(), !!ccw);
@@ -264,9 +268,8 @@ const center = point(canvas.width / 2, canvas.height / 2);
 
 const large = 10000;
 
-// 1->2
-
 function p1_p2(): [Line, Line] {
+  // 1->2
   // solve ssa triangle so that line segment is trisected
   const R1a = 200;
   const R1b = R1a + 20;
@@ -298,8 +301,8 @@ function p1_p2(): [Line, Line] {
 }
 const [_l1, _l2] = p1_p2();
 
-// 2->4
 function p4(l2end: Point): [Line, Line] {
+  // 2->4
   const tri1a = l2end.lineTowards(120, 40).draw();
   const tri1b = l2end.lineTowards(60, 40).draw();
   const tri1c = line(tri1a.p2, tri1b.p2).draw();
@@ -328,9 +331,8 @@ function p4(l2end: Point): [Line, Line] {
 }
 const [_l4, _l4down1] = p4(_l2.p2);
 
-// 4->3
-
 function p3(l4: Line, l4down1: Line): Line {
+  // 4->3
   const img = l4.p1.moveTowards(0, 80).lineTowards(90, 60).draw();
   const hyp = line(l4.p1, img.p2).draw();
   const residue = img.p2.lineTowards(0, 20).drawCircle();
@@ -396,15 +398,45 @@ function p5(l4center: Point): Line {
 
   const mark = tri1c.p2.lineTowards(tri1c.vec().dir(), 100).draw();
   markRightAngle(tri3c.reverse(), -1);
-  const mark2 = line(tri2h.mid(), tri3a.p2).draw();
-  markHatches(tri2h, 1, -13);
-  markHatches(tri2h, 1, 23);
   
   return l5;
 }
 const _l5 = p5(_l4down1.p2);
 
-[_l1, _l2, _l3, _l4, _l5].forEach(v => v.draw("important"));
+function p6() {
+  // ?->6
+  // 6-8-14/5 triangle (ambiguous case + 6/8/10 triangle)
+  const l6ray = center.lineTowards(180, large);
+  const l6 = center.moveTowards(180, 200).lineTowards(180, 120).draw();
+  // use sine law to find 2nd angle
+  const ang = 180 - invdegRel(Math.asin(3/5 * 4/3));
+  const tri1c = l6;
+  const tri1b = l6.p2.lineTowards(ang, 2.8 * 20).draw();
+  const tri1a = l6.p1.lineTowards(ang + invdegRel(Math.asin(3/5)), 8 * 20).draw();
+  markAngle(tri1b.reverse(), tri1a.reverse(), 2);
+
+  // indicate length 8
+  function square(la: Line): [Line, Line, Line, Line] {
+    la.draw();
+    const lb = la.p2.lineTo(la.vec().rotate(90)).draw();
+    const lc = lb.p2.lineTo(lb.vec().rotate(90)).draw();
+    const ld = lc.p2.lineTo(lc.vec().rotate(90)).draw();
+    markRightAngle(la, 1);
+    markRightAngle(lb, 1);
+    markRightAngle(lc, 1);
+    markRightAngle(ld, 1);
+    return [la, lb, lc, ld];
+  }
+  const sq1 = square(line(tri1a.p2, tri1a.mid()));
+  const sq2 = square(line(sq1[2].p2, sq1[2].mid()));
+  sq2.forEach(v => markHatches(v, 1));
+  const triangles = line(tri1c.p1, sq2[2].p1).draw();
+  markAngle(triangles, tri1a, 1);
+  return l6;
+}
+const _l6 = p6();
+
+[_l1, _l2, _l3, _l4, _l5, _l6].forEach(v => v.draw("important"));
 
 // ref lines
 for(let i = 0; i < 12; i++) {
