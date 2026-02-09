@@ -145,6 +145,13 @@ class Line {
         ctx.stroke();
         return this;
     }
+    drawArc(other, ccw, profile) {
+        setDrawSettings(profile);
+        ctx.beginPath();
+        ctx.arc(this.p1.x, this.p1.y, this.vec().length(), this.vec().dirRaw(), other.vec().dirRaw(), ccw);
+        ctx.stroke();
+        return this;
+    }
     intersect(other) {
         const pa = this.p1;
         const pb = other.p1;
@@ -363,6 +370,15 @@ function p6() {
     sq2.forEach(v => markHatches(v, 1));
     const triangles = line(tri1c.p1, sq2[2].p1).draw();
     markAngle(triangles, tri1a, 1);
+    // indicate 2.8
+    tri1b.reverse().drawArc(sq1[3].reverse(), true);
+    const tri2a = sq2[2].p2.lineTowards(sq2[2].vec().dir(), 20 * 2.4).draw();
+    const tri2c = line(tri2a.p2, sq1[3].offset(20 * 1.2)).draw();
+    markAngle(tri2c.reverse(), sq1[3].reverse(), 2, true);
+    const sq3 = square(line(tri2c.p1, tri2c.offset(20 * 2)).reverse());
+    sq3.forEach(v => markHatches(v, 1));
+    const triangles2 = line(sq3[2].p2, tri2c.p2).draw();
+    markAngle(tri2c.reverse(), triangles2.reverse(), 1);
     return l6;
 }
 const _l6 = p6();
