@@ -4,8 +4,7 @@
 - `5` sin law
 - `6` cos law
 - `7` (20, sqrt276, 26) + (68, sqrt276, 70) triangle
-- `8` geoseries inf sum
-- `9` rcp squares inf sum
-- `10` inf sum k*z^k = z/(1-z)^2 (polylogarithm sum), z = 4/5 so sum = 20, add coeff of 1/2
-- `11`
-- `12`
+- `8,9` quadrilateral inscribed in circle
+- `10` optimization
+- `11` geoseries inf sum
+- `12` inf sum k*z^k = z/(1-z)^2 (polylogarithm sum), z = 3/4 so sum = 12

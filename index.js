@@ -228,15 +228,17 @@ function markAngle(l1, l2, count, ccw, profile) {
     }
 }
 const center = point(canvas.width / 2, canvas.height / 2);
-function square(la) {
+function square(la, noRightAngle) {
     la.draw();
     const lb = la.p2.lineTo(la.vec().rotate(90)).draw();
     const lc = lb.p2.lineTo(lb.vec().rotate(90)).draw();
     const ld = lc.p2.lineTo(lc.vec().rotate(90)).draw();
-    markRightAngle(la, 1);
-    markRightAngle(lb, 1);
-    markRightAngle(lc, 1);
-    markRightAngle(ld, 1);
+    if (!noRightAngle) {
+        markRightAngle(la, 1);
+        markRightAngle(lb, 1);
+        markRightAngle(lc, 1);
+        markRightAngle(ld, 1);
+    }
     return [la, lb, lc, ld];
 }
 // ====== application ======
@@ -363,12 +365,14 @@ function p6() {
     const tri1b = l6.p2.lineTowards(ang, 2.8 * 20).draw();
     const tri1a = l6.p1.lineTowards(ang + invdegRel(Math.asin(3 / 5)), 8 * 20).draw();
     markAngle(tri1b.reverse(), tri1a.reverse(), 2);
+    markHatches(tri1b, 3, -8);
     // indicate length 8
     const sq1 = square(line(tri1a.p2, tri1a.mid()));
     const sq2 = square(line(sq1[2].p2, sq1[2].mid()));
-    sq2.forEach(v => markHatches(v, 1));
     const triangles = line(tri1c.p1, sq2[2].p1).draw();
+    const sq4 = square(sq1[0].p2.lineTowards(sq1[0].vec().dir(), 40));
     markAngle(triangles, tri1a, 1);
+    sq2.concat(sq4).forEach(v => markHatches(v, 1));
     // indicate 2.8
     tri1b.reverse().drawArc(sq1[3].reverse(), true);
     const tri2a = sq2[2].p2.lineTowards(sq2[2].vec().dir(), 20 * 2.4).draw();
@@ -395,11 +399,32 @@ const [_l6, _l6tri1a, _l6tri1b, _l6ex] = p6();
 });
 function p7(l6tri1a, l6tri1b) {
     const l7ray = center.lineTowards(210, large);
-    const l7 = center.moveTowards(210, 200).lineTowards(210, 140).draw();
+    const l7 = center.moveTowards(210, 210).lineTowards(210, 140).draw();
     const tri1h = l7;
     const angle1 = 210 - invdegRel(Math.acos(6.8 / 7));
     const tri1a = l7.p1.lineTowards(angle1, 20 * 6.8).draw();
     const tri1b = l7.p2.lineTowards(angle1 - 90, 2 * Math.sqrt(276)).draw();
+    // indicate sqrt(276)
+    const tri2b = tri1b;
+    const tri2a = tri2b.p1.lineTowards(tri2b.vec().dir() + 90, 40).draw();
+    markHatches(tri2a, 1, -3);
+    const tri2h = line(tri2a.p2, tri2b.p2).draw();
+    const text20 = tri2a.mid().moveTo(vector(-40, 10));
+    const text26 = text20.moveTo(vector(60, 12));
+    setDrawSettings();
+    ctx.font = "bold 20px sans-serif";
+    ctx.fillText("2.0", text20.x, text20.y);
+    ctx.fillText("2.6", text26.x, text26.y);
+    // indicate 6.8
+    const sq1 = square(tri1a.p2.lineTowards(tri1a.reverse().vec().dir(), 80), true);
+    const sq2 = square(sq1[0].mid().lineTowards(sq1[0].vec().dir(), 40));
+    const sq1diag = line(sq1[0].p1, sq1[2].p1).draw();
+    const ext28 = sq1[3].p1.lineTowards(sq1[3].reverse().vec().dir(), 2.8 * 20).draw();
+    markHatches(ext28, 3);
+    markAngle(sq1diag, tri1a.reverse(), 1, true);
+    markRightAngle(sq1[3], 1);
+    sq2.map(v => markHatches(v, 1));
+    tri1a.reverse().drawArc(sq1[3].reverse());
     return l7;
 }
 const _l7 = p7(_l6tri1a, _l6tri1b);
