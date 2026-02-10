@@ -1,11 +1,11 @@
-- `1->2` similar triangles
-- `2->4` special triangles
-- `4->3` pythagorean theorem
-- `4->5` sin/cos law
-- `5->6` sin/cos law
-- `6->7` 20, sqrt276, 26 triangle
-- `->8` geoseries inf sum
-- `->9` rcp squares inf sum
-- `->10` inf sum k*z^k = z/(1-z)^2 (polylogarithm sum), z = 4/5 so sum = 20, add coeff of 1/2
-- `->11`
-- `->12`
+- `2` similar triangles
+- `4` special triangles
+- `3` pythagorean theorem
+- `5` sin law
+- `6` cos law
+- `7` (20, sqrt276, 26) + (68, sqrt276, 70) triangle
+- `8` geoseries inf sum
+- `9` rcp squares inf sum
+- `10` inf sum k*z^k = z/(1-z)^2 (polylogarithm sum), z = 4/5 so sum = 20, add coeff of 1/2
+- `11`
+- `12`

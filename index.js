@@ -228,6 +228,17 @@ function markAngle(l1, l2, count, ccw, profile) {
     }
 }
 const center = point(canvas.width / 2, canvas.height / 2);
+function square(la) {
+    la.draw();
+    const lb = la.p2.lineTo(la.vec().rotate(90)).draw();
+    const lc = lb.p2.lineTo(lb.vec().rotate(90)).draw();
+    const ld = lc.p2.lineTo(lc.vec().rotate(90)).draw();
+    markRightAngle(la, 1);
+    markRightAngle(lb, 1);
+    markRightAngle(lc, 1);
+    markRightAngle(ld, 1);
+    return [la, lb, lc, ld];
+}
 // ====== application ======
 const large = 10000;
 function p1_p2() {
@@ -339,13 +350,12 @@ function p5(l4center) {
     markHatches(tri3c, 1);
     const mark = tri1c.p2.lineTowards(tri1c.vec().dir(), 100).draw();
     markRightAngle(tri3c.reverse(), -1);
-    return l5;
+    return [l5, [tri1a.p1, tri1a.p2, tri2h.p2, tri3c.p1]];
 }
-const _l5 = p5(_l4down1.p2);
+const [_l5, _l5ex] = p5(_l4down1.p2);
 function p6() {
     // ?->6
     // 6-8-14/5 triangle (ambiguous case + 6/8/10 triangle)
-    const l6ray = center.lineTowards(180, large);
     const l6 = center.moveTowards(180, 200).lineTowards(180, 120).draw();
     // use sine law to find 2nd angle
     const ang = 180 - invdegRel(Math.asin(3 / 5 * 4 / 3));
@@ -354,17 +364,6 @@ function p6() {
     const tri1a = l6.p1.lineTowards(ang + invdegRel(Math.asin(3 / 5)), 8 * 20).draw();
     markAngle(tri1b.reverse(), tri1a.reverse(), 2);
     // indicate length 8
-    function square(la) {
-        la.draw();
-        const lb = la.p2.lineTo(la.vec().rotate(90)).draw();
-        const lc = lb.p2.lineTo(lb.vec().rotate(90)).draw();
-        const ld = lc.p2.lineTo(lc.vec().rotate(90)).draw();
-        markRightAngle(la, 1);
-        markRightAngle(lb, 1);
-        markRightAngle(lc, 1);
-        markRightAngle(ld, 1);
-        return [la, lb, lc, ld];
-    }
     const sq1 = square(line(tri1a.p2, tri1a.mid()));
     const sq2 = square(line(sq1[2].p2, sq1[2].mid()));
     sq2.forEach(v => markHatches(v, 1));
@@ -379,10 +378,32 @@ function p6() {
     sq3.forEach(v => markHatches(v, 1));
     const triangles2 = line(sq3[2].p2, tri2c.p2).draw();
     markAngle(tri2c.reverse(), triangles2.reverse(), 1);
-    return l6;
+    return [l6, tri1a, tri1b, [tri1a.p1, sq1[1].p2, triangles.p2, tri2a.p2]];
 }
-const _l6 = p6();
-[_l1, _l2, _l3, _l4, _l5, _l6].forEach(v => v.draw("important"));
+const [_l6, _l6tri1a, _l6tri1b, _l6ex] = p6();
+[
+    [0, 0],
+    [0, 1],
+    [1, 2],
+    [2, 3],
+    [3, 3]
+].map((v) => {
+    const p1 = _l5ex[v[0]];
+    const p2 = _l6ex[v[1]];
+    if (p1 && p2)
+        line(p1, p2).draw();
+});
+function p7(l6tri1a, l6tri1b) {
+    const l7ray = center.lineTowards(210, large);
+    const l7 = center.moveTowards(210, 200).lineTowards(210, 140).draw();
+    const tri1h = l7;
+    const angle1 = 210 - invdegRel(Math.acos(6.8 / 7));
+    const tri1a = l7.p1.lineTowards(angle1, 20 * 6.8).draw();
+    const tri1b = l7.p2.lineTowards(angle1 - 90, 2 * Math.sqrt(276)).draw();
+    return l7;
+}
+const _l7 = p7(_l6tri1a, _l6tri1b);
+[_l1, _l2, _l3, _l4, _l5, _l6, _l7].forEach(v => v.draw("important"));
 // ref lines
 for (let i = 0; i < 12; i++) {
     center.lineTowards(i * 30, 180).draw("debug");
