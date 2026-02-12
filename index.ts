@@ -78,6 +78,10 @@ class Vector {
   rotate(d: number): Vector {
     return vectorDir(this.dir() + d, this.length());
   }
+
+  toString(): string {
+    return `Vector(${this.x}, ${this.y})`;
+  }
 }
 
 function vector(x: number, y: number) {
@@ -135,6 +139,18 @@ class Point {
 
   lineUntilIntersect(dir: number, l: Line) {
     return new Line(this, this.moveUntilIntersect(dir, l));
+  }
+
+  pos(): Vector {
+    return vector(this.x, this.y);
+  }
+
+  dist(other: Point): number {
+    return this.pos().sub(other.pos()).length();
+  }
+
+  toString(): string {
+    return `Point(${this.x}, ${this.y})`;
   }
 }
 
@@ -199,6 +215,10 @@ class Line {
   
   reverse(): Line {
     return new Line(this.p2, this.p1);
+  }
+
+  toString(): string {
+    return `Line(${this.p1}, ${this.p2})`;
   }
 }
 
@@ -506,7 +526,60 @@ function p7(l6tri1a: Line, l6tri1b: Line) {
 }
 const _l7 = p7(_l6tri1a, _l6tri1b);
 
-[_l1, _l2, _l3, _l4, _l5, _l6, _l7].forEach(v => v.draw("important"));
+function p89(): [Line, Line] {
+  const m = 11;
+  const l8 = center.moveTowards(240, m * 20).lineTowards(240, 8 * 20);
+  const l9 = center.moveTowards(270, m * 20).lineTowards(270, 9 * 20);
+  
+  const tri1a = line(l8.mid(), l9.p2).draw();
+  console.log(tri1a.vec().length() / 20);
+  // please wind points clockwise
+  function incircle(a: Point, b: Point, c: Point): [Point, number] {
+    const l1 = line(a, b).vec().length();
+    const l2 = line(b, c).vec().length();
+    const l3 = line(c, a).vec().length();
+    const v = a.pos().scale(l2).add(b.pos().scale(l3)).add(c.pos().scale(l1)).scale(1/(l1 + l2 + l3));
+    const p = point(v.x, v.y);
+    const s = 0.5 * (l1 + l2 + l3);
+    return [p, Math.sqrt((s - l1) * (s - l2) * (s - l3) / s)];
+  }
+  const [p, rad] = incircle(l8.mid(), l9.p2, center);
+  p.lineTowards(0, rad).drawCircle();
+
+  const conn = line(l8.p1, l9.p1).draw();
+  markAngle(conn, l8, 3, true);
+  markAngle(conn.reverse(), l9, 3);
+
+  // sqrt(8sqrt(3)) indicator
+  const quadCenter = point(250, 750).moveTowards(45, 40).moveTowards(90, 20);
+  const leg1 = quadCenter.lineTowards(0, Math.sqrt(3 * Math.sqrt(3)) * 20).draw();
+  const leg2a = quadCenter.lineTowards(90, 1 * 20).draw();
+  const leg2b = leg2a.p2.lineTowards(90, 2 * 20).draw();
+  const leg3 = quadCenter.lineTowards(180, 3 * 20).draw();
+  const leg4 = quadCenter.lineTowards(270, 3 * Math.sqrt(3) * 20).draw();
+  const leg12 = line(leg1.p2, leg2a.p2).draw();
+  const leg23 = line(leg2b.p2, leg3.p2).draw();
+  const leg34 = line(leg3.p2, leg4.p2).draw();
+  const leg41 = line(leg4.p2, leg1.p2).draw();
+  markHatches(leg2b, 1, -2);
+  markAngle(leg3.reverse(), leg23.reverse(), 1);
+  markRightAngle(leg4, 1);
+  const tri2a = leg3;
+  const tri2b = line(leg3.p2, leg34.offset(3 * 20)).draw();
+  const tri2c = line(tri2b.p2, quadCenter).draw();
+  markHatches(tri2a, 2);
+  markHatches(tri2b, 2);
+  markHatches(tri2c, 2);
+  const circle = line(leg4.p2, leg2a.p2);
+  line(circle.mid(), circle.p1).drawArc(line(circle.mid(), circle.p2));
+  const rect1 = leg1.p2.lineTowards(90, 3 * 20).draw();
+  const rect2 = leg2b.p2.lineTowards(0, Math.sqrt(3 * Math.sqrt(3)) * 20).draw();
+
+  return [l8, l9];
+}
+const [_l8, _l9] = p89();
+
+[_l1, _l2, _l3, _l4, _l5, _l6, _l7, _l8, _l9].forEach(v => v.draw("important"));
 
 // ref lines
 for(let i = 0; i < 12; i++) {

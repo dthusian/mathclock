@@ -3,7 +3,7 @@
 - `3` pythagorean theorem
 - `5` sin law
 - `6` cos law
-- `7` (20, sqrt276, 26) + (68, sqrt276, 70) triangle
+- `7` (20, sqrt276, 26) + (68, sqrt276, 70) triangle, pythagorean theorem again?
 - `8,9` quadrilateral inscribed in circle
 - `10` optimization
 - `11` geoseries inf sum
