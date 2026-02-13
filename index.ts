@@ -306,6 +306,14 @@ function square(la: Line, noRightAngle?: boolean): [Line, Line, Line, Line] {
   return [la, lb, lc, ld];
 }
 
+function drawText(text: string, pos: Point, profile?: string) {
+  setDrawSettings(profile);
+  ctx.fillStyle = ctx.strokeStyle;
+  ctx.font = "bold 20px sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText(text, pos.x, pos.y);
+}
+
 // ====== application ======
 
 const large = 10000;
@@ -504,12 +512,10 @@ function p7(l6tri1a: Line, l6tri1b: Line) {
   const tri2a = tri2b.p1.lineTowards(tri2b.vec().dir() + 90, 40).draw();
   markHatches(tri2a, 1, -3);
   const tri2h = line(tri2a.p2, tri2b.p2).draw();
-  const text20 = tri2a.mid().moveTo(vector(-40, 10));
-  const text26 = text20.moveTo(vector(60, 12));
-  setDrawSettings();
-  ctx.font = "bold 20px sans-serif";
-  ctx.fillText("2.0", text20.x, text20.y);
-  ctx.fillText("2.6", text26.x, text26.y);
+  const text20 = tri2a.mid().moveTo(vector(-30, 10));
+  const text26 = text20.moveTo(vector(60, 18));
+  drawText("2.0", text20);
+  drawText("2.6", text26);
 
   // indicate 6.8
   const sq1 = square(tri1a.p2.lineTowards(tri1a.reverse().vec().dir(), 80), true);
@@ -527,12 +533,11 @@ function p7(l6tri1a: Line, l6tri1b: Line) {
 const _l7 = p7(_l6tri1a, _l6tri1b);
 
 function p89(): [Line, Line] {
-  const m = 11;
-  const l8 = center.moveTowards(240, m * 20).lineTowards(240, 8 * 20);
-  const l9 = center.moveTowards(270, m * 20).lineTowards(270, 9 * 20);
+  const l8 = center.moveTowards(240, (10 * Math.sqrt(3) - 4) * 20).lineTowards(240, 8 * 20);
+  const l9 = center.moveTowards(270, 11 * 20).lineTowards(270, 9 * 20);
+  const n = l9.p2.lineTowards(150, 10 * 20).draw();
+  markRightAngle(n.reverse(), 1);
   
-  const tri1a = line(l8.mid(), l9.p2).draw();
-  console.log(tri1a.vec().length() / 20);
   // please wind points clockwise
   function incircle(a: Point, b: Point, c: Point): [Point, number] {
     const l1 = line(a, b).vec().length();
@@ -543,37 +548,41 @@ function p89(): [Line, Line] {
     const s = 0.5 * (l1 + l2 + l3);
     return [p, Math.sqrt((s - l1) * (s - l2) * (s - l3) / s)];
   }
-  const [p, rad] = incircle(l8.mid(), l9.p2, center);
+  const [p, rad] = incircle(center, n.p2, n.p1);
   p.lineTowards(0, rad).drawCircle();
 
-  const conn = line(l8.p1, l9.p1).draw();
-  markAngle(conn, l8, 3, true);
-  markAngle(conn.reverse(), l9, 3);
+  // indicate integer
+  drawText("integer", n.mid().moveTo(vector(-40, 20)));
+  drawText("odd", l9.mid().moveTo(vector(0, -10)), "important");
+  drawText("even", l8.mid().moveTo(vector(20, 20)), "important");
 
-  // sqrt(8sqrt(3)) indicator
-  const quadCenter = point(250, 750).moveTowards(45, 40).moveTowards(90, 20);
-  const leg1 = quadCenter.lineTowards(0, Math.sqrt(3 * Math.sqrt(3)) * 20).draw();
-  const leg2a = quadCenter.lineTowards(90, 1 * 20).draw();
-  const leg2b = leg2a.p2.lineTowards(90, 2 * 20).draw();
-  const leg3 = quadCenter.lineTowards(180, 3 * 20).draw();
-  const leg4 = quadCenter.lineTowards(270, 3 * Math.sqrt(3) * 20).draw();
-  const leg12 = line(leg1.p2, leg2a.p2).draw();
-  const leg23 = line(leg2b.p2, leg3.p2).draw();
-  const leg34 = line(leg3.p2, leg4.p2).draw();
-  const leg41 = line(leg4.p2, leg1.p2).draw();
-  markHatches(leg2b, 1, -2);
-  markAngle(leg3.reverse(), leg23.reverse(), 1);
-  markRightAngle(leg4, 1);
-  const tri2a = leg3;
-  const tri2b = line(leg3.p2, leg34.offset(3 * 20)).draw();
-  const tri2c = line(tri2b.p2, quadCenter).draw();
-  markHatches(tri2a, 2);
-  markHatches(tri2b, 2);
-  markHatches(tri2c, 2);
-  const circle = line(leg4.p2, leg2a.p2);
-  line(circle.mid(), circle.p1).drawArc(line(circle.mid(), circle.p2));
-  const rect1 = leg1.p2.lineTowards(90, 3 * 20).draw();
-  const rect2 = leg2b.p2.lineTowards(0, Math.sqrt(3 * Math.sqrt(3)) * 20).draw();
+  // indicate r > 3
+  const lessThanRad = p.lineTowards(0, 60).draw();
+  markHatches(lessThanRad, 2);
+
+  // indicate leg symmetry
+  line(l8.mid(), l8.p1).drawArc(line(l8.mid(), l8.p2));
+
+  // indicate r < l8/2
+  const radiusLine = p.lineUntilIntersect(150, l8).draw();
+
+  // indicate l9 > 4/sqrt(3) * r
+  const l8ext = center.moveTowards(240, (10 * Math.sqrt(3) - 2 * rad / 20) * 20).lineTowards(240, rad).draw();
+  const l8perp = l8ext.p1.lineUntilIntersect(330, l9).draw();
+  markRightAngle(l8perp, -1);
+
+  // indicate l8 < 10
+  const l8cmp1 = n.p2.moveTowards(240, 20 * Math.cos(Math.asin(3/4)) * 4).lineTowards(150, 3 * 20).draw();
+  const l8cmp2 = l8cmp1.p2.lineTowards(150, 2 * 20).draw();
+  markHatches(l8cmp1, 2);
+  markHatches(l8cmp2, 1);
+
+  // indicate l9 < n
+  n.drawArc(l9.reverse(), true);
+
+  // => 3 < r
+  // => 2r < l8 < 10
+  // => 4/sqrt(3) * r < l9 < n 
 
   return [l8, l9];
 }
