@@ -268,358 +268,363 @@ function drawText(text, pos, settings) {
     ctx.fillText(text, pos.x, pos.y);
 }
 // ====== application ======
-const large = 10000;
-function p1_p2() {
-    // 1->2
-    // solve ssa triangle so that line segment is trisected
-    const R1a = 200;
-    const R1b = R1a + 20;
-    const R2a = (() => {
-        let a = R1b;
-        let b = 120;
-        let beta = 30 / 180 * Math.PI;
-        let alpha = Math.asin((a / b) * Math.sin(beta));
-        let gamma = Math.PI - alpha - beta;
-        let c = b * Math.sin(gamma) / Math.sin(beta);
-        return c;
-    })();
-    const R2b = R2a + 40;
-    const l1 = line(center.moveTowards(30, R1a), center.moveTowards(30, R1b));
-    const l1ext = l1.p2.lineTo(l1.vec().scale(2)).draw();
-    const l2 = line(center.moveTowards(60, R2a), center.moveTowards(60, R2b));
-    const l2img = l2.p1.lineTowards(30, R2b - R2a).draw().drawCircle();
-    const l2a = line(l1.p1, l2img.p2).draw();
-    const l2b = line(l1.p2, l2img.p1).draw();
-    markArrows(l1ext, 1);
-    markArrows(l2img, 1, 5);
-    markHatches(l2b, 1, -45);
-    markHatches(l2b, 1, 5);
-    markHatches(l2b, 1, 40);
-    return [l1, l2];
-}
-const [_l1, _l2] = p1_p2();
-function p4(l2end) {
-    // 2->4
-    const tri1a = l2end.lineTowards(120, 40).draw();
-    const tri1b = l2end.lineTowards(60, 40).draw();
-    const tri1c = line(tri1a.p2, tri1b.p2).draw();
-    markHatches(tri1a, 1);
-    markHatches(tri1b, 1);
-    markHatches(tri1c, 1);
-    const tri2a = tri1a.p2.lineTowards(180, 40).draw();
-    const tri2b = tri1a.p2.lineTowards(120, 80).draw();
-    const tri2c = line(tri2a.p2, tri2b.p2).draw();
-    markHatches(tri2a, 1);
-    markArrows(tri2b, 2);
-    markRightAngle(tri2c, -1);
-    markRightAngle(tri2c.reverse(), -1);
-    const l4ray = center.lineTowards(120, large);
-    const down1 = tri2c.p1.lineUntilIntersect(180, l4ray).draw();
-    const down2 = tri2c.p2.lineUntilIntersect(180, l4ray).draw();
-    const img = line(down1.p2, down2.p2).draw().drawCircle();
-    const l4 = down1.p2.lineTowards(300, 80);
-    markArrows(img, 2);
-    return [l4, down1];
-}
-const [_l4, _l4down1] = p4(_l2.p2);
-function p3(l4, l4down1) {
-    // 4->3
-    const img = l4.p1.moveTowards(0, 80).lineTowards(90, 60).draw();
-    const hyp = line(l4.p1, img.p2).draw();
-    const residue = img.p2.lineTowards(0, 20).drawCircle();
-    markAngle(hyp, l4down1.reverse(), 2, true);
-    markRightAngle(img, 1);
-    markRightAngle(img, -1);
-    const p = img.p1.moveTowards(0, 40);
-    const a = p.lineTowards(0, 40);
-    const c = p.lineUntilIntersect(135, img).draw();
-    const d = p.lineTowards(180, 40);
-    markAngle(c, d, 1);
-    markAngle(c.reverse(), img.reverse(), 1, true);
-    markHatches(d, 1, 2);
-    const l3ray = center.lineTowards(90, large);
-    const proj = img.p2.lineUntilIntersect(0, l3ray).draw();
-    const img2 = proj.p2.lineTowards(-90, 60).draw();
-    const l3 = img2.p2.lineTowards(-90, 60);
-    markRightAngle(proj, -1);
-    markRightAngle(proj.reverse(), 1);
-    markHatches(img2, 2, 5);
-    markHatches(l3, 2, 0, { profile: "important" });
-    return l3;
-}
-const _l3 = p3(_l4, _l4down1);
-function p5(l4center) {
-    // 4->5
-    // sin a = sin(60) = sqrt(3)/2, sin b = 3/5
-    // A = 5, B = 5*3/5*2/sqrt(3) = sqrt(12)
-    const asin35 = invdegRel(Math.asin(3 / 5));
-    const tangentDir = 150 - asin35;
-    const tangentPoint = l4center.moveTowards(tangentDir + 90, 80);
-    const l5ray = center.lineTowards(150, large);
-    const startPoint = tangentPoint.moveUntilIntersect(tangentDir + 180, l5ray);
-    const l5 = startPoint.lineTowards(150, 100);
-    const tri1a = l5;
-    const tri1cray = l5.p1.lineTowards(tangentDir, large);
-    const tri1bray = l5.p2.lineTowards(tangentDir - 60, large);
-    const tri1p = tri1bray.intersect(tri1cray);
-    const tri1c = line(l5.p1, tri1p).draw();
-    const tri1b = line(l5.p2, tri1p).draw();
-    markAngle(tri1a, tri1c, 2, true);
-    const tri2b = tri1b;
-    const tri2a = tri2b.p2.lineTowards(tri2b.vec().dir() + 90, 40).draw();
-    const tri2h = tri2b.p1.lineTowards(tri2b.vec().dir() + 30, 80).draw();
-    markRightAngle(tri2b.reverse(), -1);
-    markHatches(tri2a, 1, 3);
-    const tri3a = tri2a.p2.lineTowards(tri2a.vec().dir(), 40).draw();
-    const tri3b = tri2h.p2.lineTowards(tri2h.vec().dir(), 40).draw();
-    const tri3c = line(tri3a.p2, tri3b.p2).draw();
-    markHatches(tri3a, 1, -3);
-    markHatches(tri3b, 1, -3);
-    markHatches(tri3c, 1);
-    const mark = tri1c.p2.lineTowards(tri1c.vec().dir(), 100).draw();
-    markRightAngle(tri3c.reverse(), -1);
-    return [l5, [tri1a.p1, tri1a.p2, tri2h.p2, tri3c.p1]];
-}
-const [_l5, _l5ex] = p5(_l4down1.p2);
-function p6() {
-    // ?->6
-    // 6-8-14/5 triangle (ambiguous case + 6/8/10 triangle)
-    const l6 = center.moveTowards(180, 200).lineTowards(180, 120).draw();
-    // use sine law to find 2nd angle
-    const ang = 180 - invdegRel(Math.asin(3 / 5 * 4 / 3));
-    const tri1c = l6;
-    const tri1b = l6.p2.lineTowards(ang, 2.8 * 20).draw();
-    const tri1a = l6.p1.lineTowards(ang + invdegRel(Math.asin(3 / 5)), 8 * 20).draw();
-    markAngle(tri1b.reverse(), tri1a.reverse(), 2);
-    markHatches(tri1b, 3, -8);
-    // indicate length 8
-    const sq1 = square(line(tri1a.p2, tri1a.mid()));
-    const sq2 = square(line(sq1[2].p2, sq1[2].mid()));
-    const triangles = line(tri1c.p1, sq2[2].p1).draw();
-    const sq4 = square(sq1[0].p2.lineTowards(sq1[0].vec().dir(), 40));
-    markAngle(triangles, tri1a, 1);
-    sq2.concat(sq4).forEach(v => markHatches(v, 1));
-    // indicate 2.8
-    tri1b.reverse().drawArc(sq1[3].reverse(), true);
-    const tri2a = sq2[2].p2.lineTowards(sq2[2].vec().dir(), 20 * 2.4).draw();
-    const tri2c = line(tri2a.p2, sq1[3].offset(20 * 1.2)).draw();
-    markAngle(tri2c.reverse(), sq1[3].reverse(), 2, true);
-    const sq3 = square(line(tri2c.p1, tri2c.offset(20 * 2)).reverse());
-    sq3.forEach(v => markHatches(v, 1));
-    const triangles2 = line(sq3[2].p2, tri2c.p2).draw();
-    markAngle(tri2c.reverse(), triangles2.reverse(), 1);
-    return [l6, tri1a, tri1b, [tri1a.p1, sq1[1].p2, triangles.p2, tri2a.p2]];
-}
-const [_l6, _l6tri1a, _l6tri1b, _l6ex] = p6();
-[
-    [0, 0],
-    [0, 1],
-    [1, 2],
-    [2, 3],
-    [3, 3]
-].map((v) => {
-    const p1 = _l5ex[v[0]];
-    const p2 = _l6ex[v[1]];
-    if (p1 && p2)
-        line(p1, p2).draw();
-});
-function p7(l6tri1a, l6tri1b) {
-    const l7ray = center.lineTowards(210, large);
-    const l7 = center.moveTowards(210, 210).lineTowards(210, 140).draw();
-    const tri1h = l7;
-    const angle1 = 210 - invdegRel(Math.acos(6.8 / 7));
-    const tri1a = l7.p1.lineTowards(angle1, 20 * 6.8).draw();
-    const tri1b = l7.p2.lineTowards(angle1 - 90, 2 * Math.sqrt(276)).draw();
-    // indicate sqrt(276)
-    const tri2b = tri1b;
-    const tri2a = tri2b.p1.lineTowards(tri2b.vec().dir() + 90, 40).draw();
-    markHatches(tri2a, 1, -3);
-    const tri2h = line(tri2a.p2, tri2b.p2).draw();
-    const text20 = tri2a.mid().moveTo(vector(-30, 10));
-    const text26 = text20.moveTo(vector(60, 18));
-    drawText("2.0", text20);
-    drawText("2.6", text26);
-    // indicate 6.8
-    const sq1 = square(tri1a.p2.lineTowards(tri1a.reverse().vec().dir(), 80), true);
-    const sq2 = square(sq1[0].mid().lineTowards(sq1[0].vec().dir(), 40));
-    const sq1diag = line(sq1[0].p1, sq1[2].p1).draw();
-    const ext28 = sq1[3].p1.lineTowards(sq1[3].reverse().vec().dir(), 2.8 * 20).draw();
-    markHatches(ext28, 3);
-    markAngle(sq1diag, tri1a.reverse(), 1, true);
-    markRightAngle(sq1[3], 1);
-    sq2.map(v => markHatches(v, 1));
-    tri1a.reverse().drawArc(sq1[3].reverse());
-    return l7;
-}
-const _l7 = p7(_l6tri1a, _l6tri1b);
-function p89() {
-    const l8 = center.moveTowards(240, (10 * Math.sqrt(3) - 4) * 20).lineTowards(240, 8 * 20);
-    const l9 = center.moveTowards(270, 11 * 20).lineTowards(270, 9 * 20);
-    const n = l9.p2.lineTowards(150, 10 * 20).draw();
-    markRightAngle(n.reverse(), 1);
-    // please wind points clockwise
-    function incircle(a, b, c) {
-        const l1 = line(a, b).vec().length();
-        const l2 = line(b, c).vec().length();
-        const l3 = line(c, a).vec().length();
-        const v = a.pos().scale(l2).add(b.pos().scale(l3)).add(c.pos().scale(l1)).scale(1 / (l1 + l2 + l3));
-        const p = point(v.x, v.y);
-        const s = 0.5 * (l1 + l2 + l3);
-        return [p, Math.sqrt((s - l1) * (s - l2) * (s - l3) / s)];
+function draw() {
+    const large = 10000;
+    function p1_p2() {
+        // 1->2
+        // solve ssa triangle so that line segment is trisected
+        const R1a = 200;
+        const R1b = R1a + 20;
+        const R2a = (() => {
+            let a = R1b;
+            let b = 120;
+            let beta = 30 / 180 * Math.PI;
+            let alpha = Math.asin((a / b) * Math.sin(beta));
+            let gamma = Math.PI - alpha - beta;
+            let c = b * Math.sin(gamma) / Math.sin(beta);
+            return c;
+        })();
+        const R2b = R2a + 40;
+        const l1 = line(center.moveTowards(30, R1a), center.moveTowards(30, R1b));
+        const l1ext = l1.p2.lineTo(l1.vec().scale(2)).draw();
+        const l2 = line(center.moveTowards(60, R2a), center.moveTowards(60, R2b));
+        const l2img = l2.p1.lineTowards(30, R2b - R2a).draw().drawCircle();
+        const l2a = line(l1.p1, l2img.p2).draw();
+        const l2b = line(l1.p2, l2img.p1).draw();
+        markArrows(l1ext, 1);
+        markArrows(l2img, 1, 5);
+        markHatches(l2b, 1, -45);
+        markHatches(l2b, 1, 5);
+        markHatches(l2b, 1, 40);
+        return [l1, l2];
     }
-    const [p, rad] = incircle(center, n.p2, n.p1);
-    p.lineTowards(0, rad).drawCircle();
-    // indicate integer
-    drawText("integer", n.mid().moveTo(vector(-40, 20)));
-    drawText("odd", l9.mid().moveTo(vector(0, -10)), { profile: "important" });
-    drawText("even", l8.mid().moveTo(vector(20, 20)), { profile: "important" });
-    // indicate r > 3
-    const lessThanRad = p.lineTowards(0, 60).draw();
-    markHatches(lessThanRad, 2);
-    // indicate leg symmetry
-    line(l8.mid(), l8.p1).drawArc(line(l8.mid(), l8.p2));
-    // indicate r < l8/2
-    const radiusLine = p.lineUntilIntersect(150, l8).draw();
-    // indicate l9 > 4/sqrt(3) * r
-    const l8ext = center.moveTowards(240, (10 * Math.sqrt(3) - 2 * rad / 20) * 20).lineTowards(240, rad).draw();
-    const l8perp = l8ext.p1.lineUntilIntersect(330, l9).draw();
-    markRightAngle(l8perp, -1);
-    // indicate l8 < 10
-    const l8cmp1 = n.p2.moveTowards(240, 20 * Math.cos(Math.asin(3 / 4)) * 4).lineTowards(150, 3 * 20).draw();
-    const l8cmp2 = l8cmp1.p2.lineTowards(150, 2 * 20).draw();
-    markHatches(l8cmp1, 2);
-    markHatches(l8cmp2, 1);
-    // indicate l9 < n
-    n.drawArc(l9.reverse(), true);
-    // => 3 < r
-    // => 2r < l8 < 10
-    // => 4/sqrt(3) * r < l9 < n 
-    return [l8, l9];
-}
-const [_l8, _l9] = p89();
-function p10() {
-    const l10 = center.moveTowards(300, 200).lineTowards(300, 200);
-    function drawLayer(base, dir, settings) {
-        if (dir < 0) {
-            base = base.reverse();
-        }
-        const bdir = base.vec().dir();
-        const blen = base.vec().length();
-        const asin1oSqrt5 = invdegRel(Math.asin(1 / Math.sqrt(5)));
-        const asin2oSqrt5 = invdegRel(Math.asin(2 / Math.sqrt(5)));
-        const leg1a = base.p1.lineTowards(bdir - dir * asin2oSqrt5, blen / Math.sqrt(5)).draw(settings);
-        const leg1b = base.p2.lineTowards(bdir + 180 + dir * asin1oSqrt5, 2 * blen / Math.sqrt(5)).draw(settings);
-        const leg2b = leg1b.p2.lineTowards(bdir, blen * 0.8).draw(settings);
-        const leg2a = leg1b.p1.lineTowards(bdir - dir * 90, blen * 0.4).draw(settings);
-        markRightAngle(leg2a.reverse(), dir, settings);
-        markRightAngle(leg1a.reverse(), -dir, settings);
-        markAngle(base.reverse(), leg1b, 3, dir < 0, settings);
-        markAngle(leg1b.reverse(), leg2b, 3, dir > 0, settings);
-        if (dir < 0) {
-            return leg2b.reverse();
-        }
-        else {
-            return leg2b;
-        }
+    const [_l1, _l2] = p1_p2();
+    function p4(l2end) {
+        // 2->4
+        const tri1a = l2end.lineTowards(120, 40).draw();
+        const tri1b = l2end.lineTowards(60, 40).draw();
+        const tri1c = line(tri1a.p2, tri1b.p2).draw();
+        markHatches(tri1a, 1);
+        markHatches(tri1b, 1);
+        markHatches(tri1c, 1);
+        const tri2a = tri1a.p2.lineTowards(180, 40).draw();
+        const tri2b = tri1a.p2.lineTowards(120, 80).draw();
+        const tri2c = line(tri2a.p2, tri2b.p2).draw();
+        markHatches(tri2a, 1);
+        markArrows(tri2b, 2);
+        markRightAngle(tri2c, -1);
+        markRightAngle(tri2c.reverse(), -1);
+        const l4ray = center.lineTowards(120, large);
+        const down1 = tri2c.p1.lineUntilIntersect(180, l4ray).draw();
+        const down2 = tri2c.p2.lineUntilIntersect(180, l4ray).draw();
+        const img = line(down1.p2, down2.p2).draw().drawCircle();
+        const l4 = down1.p2.lineTowards(300, 80);
+        markArrows(img, 2);
+        return [l4, down1];
     }
-    let base = l10.p1.lineTowards(210, 100).reverse().draw();
-    for (let i = 0; i < 20; i++) {
-        base = drawLayer(base, (-1) ** i, { scale: 0.8 ** i });
+    const [_l4, _l4down1] = p4(_l2.p2);
+    function p3(l4, l4down1) {
+        // 4->3
+        const img = l4.p1.moveTowards(0, 80).lineTowards(90, 60).draw();
+        const hyp = line(l4.p1, img.p2).draw();
+        const residue = img.p2.lineTowards(0, 20).drawCircle();
+        markAngle(hyp, l4down1.reverse(), 2, true);
+        markRightAngle(img, 1);
+        markRightAngle(img, -1);
+        const p = img.p1.moveTowards(0, 40);
+        const a = p.lineTowards(0, 40);
+        const c = p.lineUntilIntersect(135, img).draw();
+        const d = p.lineTowards(180, 40);
+        markAngle(c, d, 1);
+        markAngle(c.reverse(), img.reverse(), 1, true);
+        markHatches(d, 1, 2);
+        const l3ray = center.lineTowards(90, large);
+        const proj = img.p2.lineUntilIntersect(0, l3ray).draw();
+        const img2 = proj.p2.lineTowards(-90, 60).draw();
+        const l3 = img2.p2.lineTowards(-90, 60);
+        markRightAngle(proj, -1);
+        markRightAngle(proj.reverse(), 1);
+        markHatches(img2, 2, 5);
+        markHatches(l3, 2, 0, { profile: "important" });
+        return l3;
     }
-    const top = l10.p2.lineTowards(210, 100).draw();
-    const pt = top.p2;
-    const triA = pt.lineTowards(180, 1 * 60).draw();
-    const triB = triA.p2.lineTowards(90, 2 * 60).draw();
-    const triH = line(triA.p1, triB.p2).draw();
-    triB.mid().lineUntilIntersect(0, triH).draw();
-    markHatches(triA, 2);
-    markHatches(triB, 2, triB.vec().length() / 4 - 15);
-    markHatches(triB, 2, -triB.vec().length() / 4);
-    markRightAngle(triB, -1);
-    markAngle(triB.reverse(), triH.reverse(), 3);
-    return l10;
-}
-const _l10 = p10();
-function p11() {
-    const l11 = center.moveTowards(330, 200).lineTowards(330, 20 * 11);
-    const asinRcpSqrt5 = invdegRel(Math.asin(1 / Math.sqrt(5)));
-    // 2sqrt5 indicator
-    const tri1hext = line(l11.p2.moveTowards(180, 20 * Math.sqrt(5)), l11.p2.moveTowards(0, 20 * Math.sqrt(5))).draw();
-    const tri1h = line(tri1hext.p1.moveTowards(-90, 30), tri1hext.p2.moveTowards(-90, 30)).draw();
-    const tri1a = tri1h.p1.lineTowards(0 - asinRcpSqrt5, 4 * 20).draw();
-    const tri1b = tri1h.p2.lineTowards(270 - asinRcpSqrt5, 2 * 20).draw();
-    markHatches(tri1b, 1, 0);
-    markRightAngle(tri1b.reverse(), 1);
-    markHatches(tri1a, 1, 20);
-    markHatches(tri1a, 1, -20);
-    markHatches(tri1h, 5, 5);
-    const tri1extDown = line(tri1hext.p1, tri1h.p1).draw();
-    const tri1extUp = line(tri1hext.p2, tri1h.p2).draw();
-    [tri1extDown, tri1extUp.reverse(), tri1hext.reverse(), tri1h].map(v => markRightAngle(v, 1));
-    // optimizer problem
-    function drawOpt(o, angle, scale, mode) {
-        const angleRad = degRel(angle);
-        const ground = o.lineTowards(90, scale).draw();
-        const leftWall = o.lineTowards(0, scale * 2).draw();
-        const rightWall = ground.p2.lineTowards(0, scale).draw();
-        markRightAngle(leftWall, 1);
-        markRightAngle(rightWall, -1);
-        const lowPointOffset = vector(scale * Math.sin(angleRad), scale * ((Math.tan(angleRad) - Math.sin(angleRad) * Math.tan(angleRad)) - 1));
-        const lowPoint = o.moveTo(lowPointOffset);
-        const wedge1 = lowPoint.lineTowards(-angle, scale).draw();
-        const wedge2 = lowPoint.lineTowards(90 - angle, scale).draw();
-        wedge1.drawArc(wedge2);
-        markRightAngle(wedge1, 1);
-        if (mode === "extract") {
-            const move = o.lineTowards(90, lowPointOffset.x);
-            const mark = move.p2.lineTowards(0, 50).draw();
-            markHatches(move, 4, 4);
-        }
-        if (mode === "ref") {
-            markHatches(wedge2, 5);
-            markHatches(ground, 5);
-            markHatches(rightWall, 5);
-        }
+    const _l3 = p3(_l4, _l4down1);
+    function p5(l4center) {
+        // 4->5
+        // sin a = sin(60) = sqrt(3)/2, sin b = 3/5
+        // A = 5, B = 5*3/5*2/sqrt(3) = sqrt(12)
+        const asin35 = invdegRel(Math.asin(3 / 5));
+        const tangentDir = 150 - asin35;
+        const tangentPoint = l4center.moveTowards(tangentDir + 90, 80);
+        const l5ray = center.lineTowards(150, large);
+        const startPoint = tangentPoint.moveUntilIntersect(tangentDir + 180, l5ray);
+        const l5 = startPoint.lineTowards(150, 100);
+        const tri1a = l5;
+        const tri1cray = l5.p1.lineTowards(tangentDir, large);
+        const tri1bray = l5.p2.lineTowards(tangentDir - 60, large);
+        const tri1p = tri1bray.intersect(tri1cray);
+        const tri1c = line(l5.p1, tri1p).draw();
+        const tri1b = line(l5.p2, tri1p).draw();
+        markAngle(tri1a, tri1c, 2, true);
+        const tri2b = tri1b;
+        const tri2a = tri2b.p2.lineTowards(tri2b.vec().dir() + 90, 40).draw();
+        const tri2h = tri2b.p1.lineTowards(tri2b.vec().dir() + 30, 80).draw();
+        markRightAngle(tri2b.reverse(), -1);
+        markHatches(tri2a, 1, 3);
+        const tri3a = tri2a.p2.lineTowards(tri2a.vec().dir(), 40).draw();
+        const tri3b = tri2h.p2.lineTowards(tri2h.vec().dir(), 40).draw();
+        const tri3c = line(tri3a.p2, tri3b.p2).draw();
+        markHatches(tri3a, 1, -3);
+        markHatches(tri3b, 1, -3);
+        markHatches(tri3c, 1);
+        const mark = tri1c.p2.lineTowards(tri1c.vec().dir(), 100).draw();
+        markRightAngle(tri3c.reverse(), -1);
+        return [l5, [tri1a.p1, tri1a.p2, tri2h.p2, tri3c.p1]];
     }
-    const scale = 2 * Math.sqrt(5) * 20;
-    const orig1 = tri1h.p1.moveTowards(-90, scale + 40);
-    const orig2 = orig1.moveTowards(-145, scale + 90);
-    drawOpt(orig1, invdegRel(Math.asin((Math.sqrt(5) - 1) / 2)), scale, "extract");
-    drawOpt(orig2, 5, scale, "ref");
-    const rotateIconPoint = orig2.moveTo(vector(scale / 2, 10 - scale * 3 / 2));
-    rotateIconPoint.lineTowards(0, 15).drawArc(rotateIconPoint.lineTowards(90, 15), true);
-    rotateIconPoint.moveTo(vector(15, -6)).lineTowards(135, 10).draw();
-    rotateIconPoint.moveTo(vector(15, -6)).lineTowards(225, 10).draw();
-    // draw minimize
-    const arrowLine = line(orig1.moveTowards(180, scale - 20), orig1.moveTowards(90, scale - 20));
-    markArrows(arrowLine.reverse(), 5, 5);
-    const angleRad = Math.asin((Math.sqrt(5) - 1) / 2);
-    const height = scale * (2 - (Math.tan(angleRad) - Math.sin(angleRad) * Math.tan(angleRad)));
-    const measureStop = line(orig1.moveTo(vector(-30, -height)), orig1.moveTo(vector(80, -height))).draw();
-    const measureLine = orig1.moveTowards(-90, 10).lineTowards(0, height).draw();
-    markArrows(measureLine, 1, 5 - height / 2);
-    markArrows(measureLine.reverse(), 1, 7 - height / 2);
-    drawText("minimize", measureLine.mid().moveTowards(-90, 52));
-    // rest of l11
-    line(tri1hext.mid(), tri1hext.p2).drawArc(line(tri1h.mid(), tri1h.p1));
-    const sqrt5q2 = Math.sqrt(5) * (Math.sqrt(5) - 1);
-    const p2 = Math.sqrt(5) + 1;
-    const part1 = l11.p1.lineTowards(330, sqrt5q2 * 20);
-    const part2 = part1.p2.lineTowards(330, p2 * 20);
-    const part3 = part2.p2.lineTowards(330, sqrt5q2 * 20);
-    markHatches(part1, 4, 0, { profile: "important" });
-    markHatches(part3, 4, 0, { profile: "important" });
-    const pent1 = part2.p1.lineTowards(366, 40).draw();
-    const pent2 = pent1.p2.lineTowards(366 - 72, 40).draw();
-    const pent3 = pent2.p2.lineTowards(366 - 72 * 2, 40).draw();
-    const pent4 = pent3.p2.lineTowards(366 - 72 * 3, 40).draw();
-    const pent5 = pent4.p2.lineTowards(366 - 72 * 4, 40).draw();
-    [pent1, pent2, pent3, pent4, pent5].map(v => markHatches(v, 1));
-    return l11;
+    const [_l5, _l5ex] = p5(_l4down1.p2);
+    function p6() {
+        // ?->6
+        // 6-8-14/5 triangle (ambiguous case + 6/8/10 triangle)
+        const l6 = center.moveTowards(180, 200).lineTowards(180, 120).draw();
+        // use sine law to find 2nd angle
+        const ang = 180 - invdegRel(Math.asin(3 / 5 * 4 / 3));
+        const tri1c = l6;
+        const tri1b = l6.p2.lineTowards(ang, 2.8 * 20).draw();
+        const tri1a = l6.p1.lineTowards(ang + invdegRel(Math.asin(3 / 5)), 8 * 20).draw();
+        markAngle(tri1b.reverse(), tri1a.reverse(), 2);
+        markHatches(tri1b, 3, -8);
+        // indicate length 8
+        const sq1 = square(line(tri1a.p2, tri1a.mid()));
+        const sq2 = square(line(sq1[2].p2, sq1[2].mid()));
+        const triangles = line(tri1c.p1, sq2[2].p1).draw();
+        const sq4 = square(sq1[0].p2.lineTowards(sq1[0].vec().dir(), 40));
+        markAngle(triangles, tri1a, 1);
+        sq2.concat(sq4).forEach(v => markHatches(v, 1));
+        // indicate 2.8
+        tri1b.reverse().drawArc(sq1[3].reverse(), true);
+        const tri2a = sq2[2].p2.lineTowards(sq2[2].vec().dir(), 20 * 2.4).draw();
+        const tri2c = line(tri2a.p2, sq1[3].offset(20 * 1.2)).draw();
+        markAngle(tri2c.reverse(), sq1[3].reverse(), 2, true);
+        const sq3 = square(line(tri2c.p1, tri2c.offset(20 * 2)).reverse());
+        sq3.forEach(v => markHatches(v, 1));
+        const triangles2 = line(sq3[2].p2, tri2c.p2).draw();
+        markAngle(tri2c.reverse(), triangles2.reverse(), 1);
+        return [l6, tri1a, tri1b, [tri1a.p1, sq1[1].p2, triangles.p2, tri2a.p2]];
+    }
+    const [_l6, _l6tri1a, _l6tri1b, _l6ex] = p6();
+    [
+        [0, 0],
+        [0, 1],
+        [1, 2],
+        [2, 3],
+        [3, 3]
+    ].map((v) => {
+        const p1 = _l5ex[v[0]];
+        const p2 = _l6ex[v[1]];
+        if (p1 && p2)
+            line(p1, p2).draw();
+    });
+    function p7(l6tri1a, l6tri1b) {
+        const l7ray = center.lineTowards(210, large);
+        const l7 = center.moveTowards(210, 210).lineTowards(210, 140).draw();
+        const tri1h = l7;
+        const angle1 = 210 - invdegRel(Math.acos(6.8 / 7));
+        const tri1a = l7.p1.lineTowards(angle1, 20 * 6.8).draw();
+        const tri1b = l7.p2.lineTowards(angle1 - 90, 2 * Math.sqrt(276)).draw();
+        // indicate sqrt(276)
+        const tri2b = tri1b;
+        const tri2a = tri2b.p1.lineTowards(tri2b.vec().dir() + 90, 40).draw();
+        markHatches(tri2a, 1, -3);
+        const tri2h = line(tri2a.p2, tri2b.p2).draw();
+        const text20 = tri2a.mid().moveTo(vector(-30, 10));
+        const text26 = text20.moveTo(vector(60, 18));
+        drawText("2.0", text20);
+        drawText("2.6", text26);
+        // indicate 6.8
+        const sq1 = square(tri1a.p2.lineTowards(tri1a.reverse().vec().dir(), 80), true);
+        const sq2 = square(sq1[0].mid().lineTowards(sq1[0].vec().dir(), 40));
+        const sq1diag = line(sq1[0].p1, sq1[2].p1).draw();
+        const ext28 = sq1[3].p1.lineTowards(sq1[3].reverse().vec().dir(), 2.8 * 20).draw();
+        markHatches(ext28, 3);
+        markAngle(sq1diag, tri1a.reverse(), 1, true);
+        markRightAngle(sq1[3], 1);
+        sq2.map(v => markHatches(v, 1));
+        tri1a.reverse().drawArc(sq1[3].reverse());
+        return l7;
+    }
+    const _l7 = p7(_l6tri1a, _l6tri1b);
+    function p8_p9() {
+        const l8 = center.moveTowards(240, (10 * Math.sqrt(3) - 4) * 20).lineTowards(240, 8 * 20);
+        const l9 = center.moveTowards(270, 11 * 20).lineTowards(270, 9 * 20);
+        const n = l9.p2.lineTowards(150, 10 * 20).draw();
+        markRightAngle(n.reverse(), 1);
+        // please wind points clockwise
+        function incircle(a, b, c) {
+            const l1 = line(a, b).vec().length();
+            const l2 = line(b, c).vec().length();
+            const l3 = line(c, a).vec().length();
+            const v = a.pos().scale(l2).add(b.pos().scale(l3)).add(c.pos().scale(l1)).scale(1 / (l1 + l2 + l3));
+            const p = point(v.x, v.y);
+            const s = 0.5 * (l1 + l2 + l3);
+            return [p, Math.sqrt((s - l1) * (s - l2) * (s - l3) / s)];
+        }
+        const [p, rad] = incircle(center, n.p2, n.p1);
+        p.lineTowards(0, rad).drawCircle();
+        // indicate integer
+        drawText("integer", n.mid().moveTo(vector(-40, 20)));
+        drawText("odd", l9.mid().moveTo(vector(0, -10)), { profile: "important" });
+        drawText("even", l8.mid().moveTo(vector(20, 20)), { profile: "important" });
+        // indicate r > 3
+        const lessThanRad = p.lineTowards(0, 60).draw();
+        markHatches(lessThanRad, 2);
+        // indicate leg symmetry
+        line(l8.mid(), l8.p1).drawArc(line(l8.mid(), l8.p2));
+        // indicate r < l8/2
+        const radiusLine = p.lineUntilIntersect(150, l8).draw();
+        // indicate l9 > 4/sqrt(3) * r
+        const l8ext = center.moveTowards(240, (10 * Math.sqrt(3) - 2 * rad / 20) * 20).lineTowards(240, rad).draw();
+        const l8perp = l8ext.p1.lineUntilIntersect(330, l9).draw();
+        markRightAngle(l8perp, -1);
+        // indicate l8 < 10
+        const l8cmp1 = n.p2.moveTowards(240, 20 * Math.cos(Math.asin(3 / 4)) * 4).lineTowards(150, 3 * 20).draw();
+        const l8cmp2 = l8cmp1.p2.lineTowards(150, 2 * 20).draw();
+        markHatches(l8cmp1, 2);
+        markHatches(l8cmp2, 1);
+        // indicate l9 < n
+        n.drawArc(l9.reverse(), true);
+        // => 3 < r
+        // => 2r < l8 < 10
+        // => 4/sqrt(3) * r < l9 < n 
+        return [l8, l9];
+    }
+    const [_l8, _l9] = p8_p9();
+    function p10() {
+        const l10 = center.moveTowards(300, 200).lineTowards(300, 200);
+        function drawLayer(base, dir, settings) {
+            if (dir < 0) {
+                base = base.reverse();
+            }
+            const bdir = base.vec().dir();
+            const blen = base.vec().length();
+            const asin1oSqrt5 = invdegRel(Math.asin(1 / Math.sqrt(5)));
+            const asin2oSqrt5 = invdegRel(Math.asin(2 / Math.sqrt(5)));
+            const leg1a = base.p1.lineTowards(bdir - dir * asin2oSqrt5, blen / Math.sqrt(5)).draw(settings);
+            const leg1b = base.p2.lineTowards(bdir + 180 + dir * asin1oSqrt5, 2 * blen / Math.sqrt(5)).draw(settings);
+            const leg2b = leg1b.p2.lineTowards(bdir, blen * 0.8).draw(settings);
+            const leg2a = leg1b.p1.lineTowards(bdir - dir * 90, blen * 0.4).draw(settings);
+            markRightAngle(leg2a.reverse(), dir, settings);
+            markRightAngle(leg1a.reverse(), -dir, settings);
+            markAngle(base.reverse(), leg1b, 3, dir < 0, settings);
+            markAngle(leg1b.reverse(), leg2b, 3, dir > 0, settings);
+            if (dir < 0) {
+                return leg2b.reverse();
+            }
+            else {
+                return leg2b;
+            }
+        }
+        let base = l10.p1.lineTowards(210, 100).reverse().draw();
+        for (let i = 0; i < 20; i++) {
+            base = drawLayer(base, (-1) ** i, { scale: 0.8 ** i });
+        }
+        const top = l10.p2.lineTowards(210, 100).draw();
+        const pt = top.p2;
+        const triA = pt.lineTowards(180, 1 * 60).draw();
+        const triB = triA.p2.lineTowards(90, 2 * 60).draw();
+        const triH = line(triA.p1, triB.p2).draw();
+        triB.mid().lineUntilIntersect(0, triH).draw();
+        markHatches(triA, 2);
+        markHatches(triB, 2, triB.vec().length() / 4 - 15);
+        markHatches(triB, 2, -triB.vec().length() / 4);
+        markRightAngle(triB, -1);
+        markAngle(triB.reverse(), triH.reverse(), 3);
+        return l10;
+    }
+    const _l10 = p10();
+    function p11() {
+        const l11 = center.moveTowards(330, 200).lineTowards(330, 20 * 11);
+        const asinRcpSqrt5 = invdegRel(Math.asin(1 / Math.sqrt(5)));
+        // 2sqrt5 indicator
+        const tri1hext = line(l11.p2.moveTowards(180, 20 * Math.sqrt(5)), l11.p2.moveTowards(0, 20 * Math.sqrt(5))).draw();
+        const tri1h = line(tri1hext.p1.moveTowards(-90, 30), tri1hext.p2.moveTowards(-90, 30)).draw();
+        const tri1a = tri1h.p1.lineTowards(0 - asinRcpSqrt5, 4 * 20).draw();
+        const tri1b = tri1h.p2.lineTowards(270 - asinRcpSqrt5, 2 * 20).draw();
+        markHatches(tri1b, 1, 0);
+        markRightAngle(tri1b.reverse(), 1);
+        markHatches(tri1a, 1, 20);
+        markHatches(tri1a, 1, -20);
+        markHatches(tri1h, 5, 5);
+        const tri1extDown = line(tri1hext.p1, tri1h.p1).draw();
+        const tri1extUp = line(tri1hext.p2, tri1h.p2).draw();
+        [tri1extDown, tri1extUp.reverse(), tri1hext.reverse(), tri1h].map(v => markRightAngle(v, 1));
+        // optimizer problem
+        function drawOpt(o, angle, scale, mode) {
+            const angleRad = degRel(angle);
+            const ground = o.lineTowards(90, scale).draw();
+            const leftWall = o.lineTowards(0, scale * 2).draw();
+            const rightWall = ground.p2.lineTowards(0, scale).draw();
+            markRightAngle(leftWall, 1);
+            markRightAngle(rightWall, -1);
+            const lowPointOffset = vector(scale * Math.sin(angleRad), scale * ((Math.tan(angleRad) - Math.sin(angleRad) * Math.tan(angleRad)) - 1));
+            const lowPoint = o.moveTo(lowPointOffset);
+            const wedge1 = lowPoint.lineTowards(-angle, scale).draw();
+            const wedge2 = lowPoint.lineTowards(90 - angle, scale).draw();
+            wedge1.drawArc(wedge2);
+            markRightAngle(wedge1, 1);
+            if (mode === "extract") {
+                const move = o.lineTowards(90, lowPointOffset.x);
+                const mark = move.p2.lineTowards(0, 50).draw();
+                markHatches(move, 4, 4);
+            }
+            if (mode === "ref") {
+                markHatches(wedge2, 5);
+                markHatches(ground, 5);
+                markHatches(rightWall, 5);
+            }
+        }
+        const scale = 2 * Math.sqrt(5) * 20;
+        const orig1 = tri1h.p1.moveTowards(-90, scale + 40);
+        const orig2 = orig1.moveTowards(-145, scale + 90);
+        drawOpt(orig1, invdegRel(Math.asin((Math.sqrt(5) - 1) / 2)), scale, "extract");
+        drawOpt(orig2, 5, scale, "ref");
+        const rotateIconPoint = orig2.moveTo(vector(scale / 2, 10 - scale * 3 / 2));
+        rotateIconPoint.lineTowards(0, 15).drawArc(rotateIconPoint.lineTowards(90, 15), true);
+        rotateIconPoint.moveTo(vector(15, -6)).lineTowards(135, 10).draw();
+        rotateIconPoint.moveTo(vector(15, -6)).lineTowards(225, 10).draw();
+        // draw minimize
+        const arrowLine = line(orig1.moveTowards(180, scale - 20), orig1.moveTowards(90, scale - 20));
+        markArrows(arrowLine.reverse(), 5, 5);
+        const angleRad = Math.asin((Math.sqrt(5) - 1) / 2);
+        const height = scale * (2 - (Math.tan(angleRad) - Math.sin(angleRad) * Math.tan(angleRad)));
+        const measureStop = line(orig1.moveTo(vector(-30, -height)), orig1.moveTo(vector(80, -height))).draw();
+        const measureLine = orig1.moveTowards(-90, 10).lineTowards(0, height).draw();
+        markArrows(measureLine, 1, 5 - height / 2);
+        markArrows(measureLine.reverse(), 1, 7 - height / 2);
+        drawText("minimize", measureLine.mid().moveTowards(-90, 52));
+        // rest of l11
+        line(tri1hext.mid(), tri1hext.p2).drawArc(line(tri1h.mid(), tri1h.p1));
+        const sqrt5q2 = Math.sqrt(5) * (Math.sqrt(5) - 1);
+        const p2 = Math.sqrt(5) + 1;
+        const part1 = l11.p1.lineTowards(330, sqrt5q2 * 20);
+        const part2 = part1.p2.lineTowards(330, p2 * 20);
+        const part3 = part2.p2.lineTowards(330, sqrt5q2 * 20);
+        markHatches(part1, 4, 0, { profile: "important" });
+        markHatches(part3, 4, 0, { profile: "important" });
+        const pent1 = part2.p1.lineTowards(366, 40).draw();
+        const pent2 = pent1.p2.lineTowards(366 - 72, 40).draw();
+        const pent3 = pent2.p2.lineTowards(366 - 72 * 2, 40).draw();
+        const pent4 = pent3.p2.lineTowards(366 - 72 * 3, 40).draw();
+        const pent5 = pent4.p2.lineTowards(366 - 72 * 4, 40).draw();
+        [pent1, pent2, pent3, pent4, pent5].map(v => markHatches(v, 1));
+        return l11;
+    }
+    const _l11 = p11();
+    function _l12() {
+    }
+    [_l1, _l2, _l3, _l4, _l5, _l6, _l7, _l8, _l9, _l10, _l11].forEach(v => v.draw({ profile: "important" }));
+    // ref lines
+    for (let i = 0; i < 12; i++) {
+        center.lineTowards(i * 30, 180).draw({ profile: "debug" });
+    }
 }
-const _l11 = p11();
-[_l1, _l2, _l3, _l4, _l5, _l6, _l7, _l8, _l9, _l10, _l11].forEach(v => v.draw({ profile: "important" }));
-// ref lines
-for (let i = 0; i < 12; i++) {
-    center.lineTowards(i * 30, 180).draw({ profile: "debug" });
-}
+draw();
