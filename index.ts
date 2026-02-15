@@ -626,7 +626,7 @@ function draw() {
     }
 
     let base = l10.p1.lineTowards(210, 100).reverse().draw();
-    for(let i = 0; i < 20; i++) {
+    for(let i = 0; i < 25; i++) {
       base = drawLayer(base, (-1) ** i, { scale: 0.8 ** i });
     }
     const top = l10.p2.lineTowards(210, 100).draw();
@@ -641,6 +641,9 @@ function draw() {
     markHatches(triB, 2, - triB.vec().length() / 4);
     markRightAngle(triB, -1);
     markAngle(triB.reverse(), triH.reverse(), 3);
+
+    const initMark = l10.p1.lineTowards(300, 40);
+    markHatches(initMark, 1, 0, { profile: "important" });
 
     return l10;
   }
@@ -729,11 +732,33 @@ function draw() {
   }
   const _l11 = p11();
 
-  function _l12() {
+  function p12(): Line {
+    const l12 = center.moveTowards(0, 220).lineTowards(0, 240).draw();
+    
+    function drawLayer(base: Point, index: number, scale: number, lineScale: number): Point {
+      const settings = { scale: lineScale };
+      const ratio = 2/3;
+      const tri1b = base.lineTowards(0, index * 40 * scale);
+      const tri1a = tri1b.p2.lineTowards(90, index * 40).draw(settings);
+      const tri1h = line(tri1a.p2, tri1b.p1).draw(settings);
+      const tri2a = tri1a.p2.lineTowards(90, 40).draw(settings);
+      const tri2b = tri2a.p2.lineTowards(0, 40 * scale).draw(settings);
+      const tri2h = line(tri2a.p1, tri2b.p2).draw(settings);
+      markHatches(tri2a, 1, 7, settings);
+      return tri1b.p2;
+    }
 
+    markHatches(l12.p1.moveTowards(0, 40 * 2/3).lineTowards(90, 40), 1, 0);
+    let base = l12.p1;
+    for(let i = 1; i <= 50; i++) {
+      base = drawLayer(base, i, (2/3) ** i, Math.min((3/4) ** (i-1), 1));
+    }
+
+    return l12;
   }
+  const _l12 = p12();
 
-  [_l1, _l2, _l3, _l4, _l5, _l6, _l7, _l8, _l9, _l10, _l11].forEach(v => v.draw({ profile :"important" }));
+  [_l1, _l2, _l3, _l4, _l5, _l6, _l7, _l8, _l9, _l10, _l11, _l12].forEach(v => v.draw({ profile :"important" }));
 
   // ref lines
   for(let i = 0; i < 12; i++) {

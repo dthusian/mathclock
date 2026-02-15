@@ -7,4 +7,4 @@
 - `8,9` quadrilateral inscribed in circle
 - `10` optimization
 - `11` geoseries inf sum
-- `12` inf sum k*z^k = z/(1-z)^2 (polylogarithm sum), z = 3/4 so sum = 12
+- `12` inf sum k*z^k = z/(1-z)^2 (polylogarithm sum), a = 2, z = 2/3 so sum = 12
