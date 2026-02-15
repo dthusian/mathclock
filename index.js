@@ -543,6 +543,7 @@ const _l10 = p10();
 function p11() {
     const l11 = center.moveTowards(330, 200).lineTowards(330, 20 * 11).draw();
     const asinRcpSqrt5 = invdegRel(Math.asin(1 / Math.sqrt(5)));
+    // 2sqrt5 indicator
     const rightHyp = line(l11.p2.moveTowards(180, 20 * Math.sqrt(5)), l11.p2.moveTowards(0, 20 * Math.sqrt(5))).draw();
     const leftHyp = line(...[rightHyp.p1, rightHyp.p2].map(v => v.moveTowards(-90, 2 * 20 * Math.sqrt(5))));
     const leg0 = rightHyp.p1.lineTowards(0 - asinRcpSqrt5, 4 * 20).draw();
@@ -555,7 +556,8 @@ function p11() {
         markHatches(v, 1, -20);
     });
     line(rightHyp.mid(), rightHyp.p2).drawArc(line(rightHyp.mid(), rightHyp.p1));
-    function drawOpt(o, angle, scale, extract) {
+    // optimizer problem
+    function drawOpt(o, angle, scale, mode) {
         const angleRad = degRel(angle);
         const ground = o.lineTowards(90, scale).draw();
         const leftWall = o.lineTowards(0, scale * 2).draw();
@@ -567,17 +569,37 @@ function p11() {
         const wedge1 = lowPoint.lineTowards(-angle, scale).draw();
         const wedge2 = lowPoint.lineTowards(90 - angle, scale).draw();
         wedge1.drawArc(wedge2);
-        if (extract) {
+        markRightAngle(wedge1, 1);
+        if (mode === "extract") {
             const move = o.lineTowards(90, lowPointOffset.x);
             const mark = move.p2.lineTowards(0, 50).draw();
             markHatches(move, 4, 4);
+        }
+        if (mode === "ref") {
+            markHatches(wedge2, 5);
+            markHatches(ground, 5);
+            markHatches(rightWall, 5);
         }
     }
     const scale = 2 * Math.sqrt(5) * 20;
     const orig1 = leftHyp.p1.moveTowards(-90, scale);
     const orig2 = orig1.moveTowards(-90, scale + 80);
-    drawOpt(orig1, invdegRel(Math.asin((Math.sqrt(5) - 1) / 2)), scale, true);
-    drawOpt(orig2, 5, scale);
+    drawOpt(orig1, invdegRel(Math.asin((Math.sqrt(5) - 1) / 2)), scale, "extract");
+    drawOpt(orig2, 5, scale, "ref");
+    // rest of l11
+    const sqrt5q2 = Math.sqrt(5) * (Math.sqrt(5) - 1);
+    const p2 = Math.sqrt(5) + 1;
+    const part1 = l11.p1.lineTowards(330, sqrt5q2 * 20).draw();
+    const part2 = part1.p2.lineTowards(330, p2 * 20).draw();
+    const part3 = part2.p2.lineTowards(330, sqrt5q2 * 20).draw();
+    markHatches(part1, 4, 0, { profile: "important" });
+    markHatches(part3, 4, 0, { profile: "important" });
+    const pent1 = part2.p1.lineTowards(366, 40).draw();
+    const pent2 = pent1.p2.lineTowards(366 - 72, 40).draw();
+    const pent3 = pent2.p2.lineTowards(366 - 72 * 2, 40).draw();
+    const pent4 = pent3.p2.lineTowards(366 - 72 * 3, 40).draw();
+    const pent5 = pent4.p2.lineTowards(366 - 72 * 4, 40).draw();
+    [pent1, pent2, pent3, pent4, pent5].map(v => markHatches(v, 1));
     return l11;
 }
 const _l11 = p11();
