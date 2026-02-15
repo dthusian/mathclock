@@ -638,19 +638,22 @@ function draw() {
             markRightAngle(tri2b, -1, settings);
             const sq1 = tri2b.p1.lineTowards(90, 40 * scale).draw(settings);
             const sq2 = tri2b.p2.lineTowards(90, 40 * scale).draw(settings);
-            const sq3 = line(sq1.p2, sq2.p2).draw(settings);
-            const ls = line(sq1.mid(), sq2.mid()).mid().lineTowards(0, 15 * scale).drawCircle(settings);
+            const ls = line(sq1.mid(), sq2.mid()).mid().lineTowards(0, 17 * scale).drawCircle(settings);
             const sq1ext = sq1.p2.lineTowards(90, 40 * (1 - scale)).draw(settings);
             const sq2ext = sq2.p2.lineTowards(90, 40 * (1 - scale)).draw(settings);
             const tri3a = line(sq1ext.p2, sq2ext.p2).draw(settings);
             const tri3b = sq2ext.p2.lineTowards(90, 40 * scale * ratio).draw(settings);
             const tri3h = line(tri3a.p1, tri3b.p2).draw(settings);
+            markRightAngle(sq2ext.reverse(), -1, settings);
+            markAngle(tri3a, tri3h, 4, false, settings);
+            const tri3ext1 = tri3b.p1.lineTowards(0, (index + 1) * 40 * (scale * ratio) - 40 * scale).draw(settings);
+            const tri3ext2 = tri3b.p2.lineTowards(0, (index + 1) * 40 * (scale * ratio) - 40 * scale + 40 * (scale * ratio)).draw(settings);
             return tri1b.p2;
         }
         let base = l12.p1;
         markHatches(base.moveTowards(0, 40 * 2 / 3).lineTowards(90, 40), 1, 0);
         for (let i = 1; i <= 50; i++) {
-            base = drawLayer(base, i, (2 / 3) ** i, Math.min((3 / 4) ** (i - 1), 1));
+            base = drawLayer(base, i, (2 / 3) ** i, Math.min((3 / 4) ** i, 1));
         }
         return l12;
     }
