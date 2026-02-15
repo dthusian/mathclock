@@ -1,8 +1,11 @@
 "use strict";
 const canvas = document.getElementsByTagName("canvas")[0] || (() => { throw new Error("No canvas found"); })();
 const ctx = canvas.getContext("2d") || (() => { throw new Error("No context found"); })();
-function deg(x) {
+function degAbs(x) {
     return ((x - 90) / 180) * Math.PI;
+}
+function degRel(x) {
+    return (x / 180) * Math.PI;
 }
 function invdegRel(x) {
     return (x / Math.PI) * 180;
@@ -13,23 +16,23 @@ function invdegAbs(x) {
 function normalizeDir(x) {
     return ((x % 360) + 360) % 360;
 }
-function setDrawSettings(profile) {
+function setDrawSettings(settings) {
     ctx.lineCap = "round";
-    if (profile === "marker") {
+    if ((settings === null || settings === void 0 ? void 0 : settings.profile) === "marker") {
         ctx.strokeStyle = "black";
-        ctx.lineWidth = 3;
+        ctx.lineWidth = 3 * (settings.scale || 1);
     }
-    else if (profile === "important") {
+    else if ((settings === null || settings === void 0 ? void 0 : settings.profile) === "important") {
         ctx.strokeStyle = "red";
-        ctx.lineWidth = 4;
+        ctx.lineWidth = 4 * (settings.scale || 1);
     }
-    else if (profile === "debug") {
+    else if ((settings === null || settings === void 0 ? void 0 : settings.profile) === "debug") {
         ctx.strokeStyle = "blue";
-        ctx.lineWidth = 4;
+        ctx.lineWidth = 4 * (settings.scale || 1);
     }
     else {
         ctx.strokeStyle = "black";
-        ctx.lineWidth = 4;
+        ctx.lineWidth = 4 * ((settings === null || settings === void 0 ? void 0 : settings.scale) || 1);
     }
 }
 class Vector {
@@ -73,7 +76,7 @@ function vector(x, y) {
     return new Vector(x, y);
 }
 function vectorDir(dir, r) {
-    return new Vector(Math.cos(deg(dir)) * r, Math.sin(deg(dir)) * r);
+    return new Vector(Math.cos(degAbs(dir)) * r, Math.sin(degAbs(dir)) * r);
 }
 function privateIntersect(pa, pb, va, vb) {
     // vax * ta - vbx * tb = pbx - pax
@@ -142,23 +145,23 @@ class Line {
     offset(x) {
         return this.p1.moveTo(this.vec().setLength(x));
     }
-    draw(profile) {
-        setDrawSettings(profile);
+    draw(settings) {
+        setDrawSettings(settings);
         ctx.beginPath();
         ctx.moveTo(this.p1.x, this.p1.y);
         ctx.lineTo(this.p2.x, this.p2.y);
         ctx.stroke();
         return this;
     }
-    drawCircle(profile) {
-        setDrawSettings(profile);
+    drawCircle(settings) {
+        setDrawSettings(settings);
         ctx.beginPath();
         ctx.arc(this.p1.x, this.p1.y, this.vec().length(), 0, 2 * Math.PI);
         ctx.stroke();
         return this;
     }
-    drawArc(other, ccw, profile) {
-        setDrawSettings(profile);
+    drawArc(other, ccw, settings) {
+        setDrawSettings(settings);
         ctx.beginPath();
         ctx.arc(this.p1.x, this.p1.y, this.vec().length(), this.vec().dirRaw(), other.vec().dirRaw(), ccw);
         ctx.stroke();
@@ -187,54 +190,55 @@ function line(p1, p2) {
 function angle(l1, l2) {
     return l1.vec().dir() - l2.vec().dir();
 }
-function privateMarkArrow(l, offset, profile) {
-    const ARROW_LENGTH = 10;
+function privateMarkArrow(l, offset, settings) {
+    const ARROW_LENGTH = 10 * ((settings === null || settings === void 0 ? void 0 : settings.scale) || 1);
     const vel = l.vec().normalize();
     const arrowA = vel.scale(ARROW_LENGTH).rotate(45);
     const arrowB = vel.scale(ARROW_LENGTH).rotate(-45);
     const point = l.offset(offset);
-    point.lineTo(arrowA).draw(profile);
-    point.lineTo(arrowB).draw(profile);
+    point.lineTo(arrowA).draw(settings);
+    point.lineTo(arrowB).draw(settings);
 }
-function privateMarkHatch(l, offset, profile) {
-    const HATCH_LENGTH = 5;
+function privateMarkHatch(l, offset, settings) {
+    const HATCH_LENGTH = 5 * ((settings === null || settings === void 0 ? void 0 : settings.scale) || 1);
     const vel = l.vec().normalize();
     const hatchA = vel.scale(HATCH_LENGTH).rotate(90);
     const hatchB = vel.scale(HATCH_LENGTH).rotate(-90);
     const point = l.offset(offset);
-    point.lineTo(hatchA).draw(profile);
-    point.lineTo(hatchB).draw(profile);
+    point.lineTo(hatchA).draw(settings);
+    point.lineTo(hatchB).draw(settings);
 }
-function privateMarkRaw(l, offset, count, spacing, profile, cb) {
+function privateMarkRaw(l, offset, count, spacing, settings, cb) {
     for (let i = 0; i < count; i++) {
-        cb(l, offset + spacing * (i - (count - 1) / 2), profile);
+        cb(l, offset + spacing * (i - (count - 1) / 2), settings);
     }
 }
-function markArrows(l, hatches, offset, profile) {
-    privateMarkRaw(l, l.vec().length() / 2 - 5 + (offset || 0), hatches, 10, profile || "marker", privateMarkArrow);
+function markArrows(l, hatches, offset, settings) {
+    privateMarkRaw(l, l.vec().length() / 2 - 5 + (offset || 0), hatches, 10, settings || { profile: "marker" }, privateMarkArrow);
 }
-function markHatches(l, hatches, offset, profile) {
-    privateMarkRaw(l, l.vec().length() / 2 + (offset || 0), hatches, 7, profile || "marker", privateMarkHatch);
+function markHatches(l, hatches, offset, settings) {
+    privateMarkRaw(l, l.vec().length() / 2 + (offset || 0), hatches, 7, settings || { profile: "marker" }, privateMarkHatch);
 }
-function markRightAngle(l, dir, profile) {
+function markRightAngle(l, dir, settings) {
     dir = Math.sign(dir);
-    const MARK_LENGTH = 10;
+    const MARK_LENGTH = 10 * ((settings === null || settings === void 0 ? void 0 : settings.scale) || 1);
     const vel = l.vec();
     const markA = vel.setLength(MARK_LENGTH);
     const markB = vel.setLength(MARK_LENGTH).rotate(dir * 90);
     const markAB = markA.add(markB);
-    line(l.p1.moveTo(markA), l.p1.moveTo(markAB)).draw(profile || "marker");
-    line(l.p1.moveTo(markB), l.p1.moveTo(markAB)).draw(profile || "marker");
+    line(l.p1.moveTo(markA), l.p1.moveTo(markAB)).draw(settings || { profile: "marker" });
+    line(l.p1.moveTo(markB), l.p1.moveTo(markAB)).draw(settings || { profile: "marker" });
 }
-function markAngle(l1, l2, count, ccw, profile) {
-    const MARK_RADIUS = 15;
-    const MARK_STEP = 5;
-    setDrawSettings(profile || "marker");
-    let angDiff = (l1.vec().dir() - l2.vec().dir()) * (ccw ? -1 : 1);
+function markAngle(l1, l2, count, ccw, settings) {
+    let angDiff = (l2.vec().dir() - l1.vec().dir()) * (ccw ? -1 : 1);
     while (angDiff < 0)
         angDiff += 360;
     while (angDiff > 360)
         angDiff -= 360;
+    const smallAngAdj = 45 / Math.min(angDiff, 45);
+    const MARK_RADIUS = 15 * smallAngAdj * ((settings === null || settings === void 0 ? void 0 : settings.scale) || 1);
+    const MARK_STEP = 5 * ((settings === null || settings === void 0 ? void 0 : settings.scale) || 1);
+    setDrawSettings(settings || { profile: "marker" });
     //console.log(`markAngle: ${count} ${angDiff}`);
     for (let i = 0; i < count; i++) {
         ctx.beginPath();
@@ -256,8 +260,8 @@ function square(la, noRightAngle) {
     }
     return [la, lb, lc, ld];
 }
-function drawText(text, pos, profile) {
-    setDrawSettings(profile);
+function drawText(text, pos, settings) {
+    setDrawSettings(settings);
     ctx.fillStyle = ctx.strokeStyle;
     ctx.font = "bold 20px sans-serif";
     ctx.textAlign = "center";
@@ -340,7 +344,7 @@ function p3(l4, l4down1) {
     markRightAngle(proj, -1);
     markRightAngle(proj.reverse(), 1);
     markHatches(img2, 2, 5);
-    markHatches(l3, 2, 0, "important");
+    markHatches(l3, 2, 0, { profile: "important" });
     return l3;
 }
 const _l3 = p3(_l4, _l4down1);
@@ -467,8 +471,8 @@ function p89() {
     p.lineTowards(0, rad).drawCircle();
     // indicate integer
     drawText("integer", n.mid().moveTo(vector(-40, 20)));
-    drawText("odd", l9.mid().moveTo(vector(0, -10)), "important");
-    drawText("even", l8.mid().moveTo(vector(20, 20)), "important");
+    drawText("odd", l9.mid().moveTo(vector(0, -10)), { profile: "important" });
+    drawText("even", l8.mid().moveTo(vector(20, 20)), { profile: "important" });
     // indicate r > 3
     const lessThanRad = p.lineTowards(0, 60).draw();
     markHatches(lessThanRad, 2);
@@ -493,8 +497,92 @@ function p89() {
     return [l8, l9];
 }
 const [_l8, _l9] = p89();
-[_l1, _l2, _l3, _l4, _l5, _l6, _l7, _l8, _l9].forEach(v => v.draw("important"));
+function p10() {
+    const l10 = center.moveTowards(300, 200).lineTowards(300, 200);
+    function drawLayer(base, dir, settings) {
+        if (dir < 0) {
+            base = base.reverse();
+        }
+        const bdir = base.vec().dir();
+        const blen = base.vec().length();
+        const asin1oSqrt5 = invdegRel(Math.asin(1 / Math.sqrt(5)));
+        const asin2oSqrt5 = invdegRel(Math.asin(2 / Math.sqrt(5)));
+        const leg1a = base.p1.lineTowards(bdir - dir * asin2oSqrt5, blen / Math.sqrt(5)).draw(settings);
+        const leg1b = base.p2.lineTowards(bdir + 180 + dir * asin1oSqrt5, 2 * blen / Math.sqrt(5)).draw(settings);
+        const leg2b = leg1b.p2.lineTowards(bdir, blen * 0.8).draw(settings);
+        const leg2a = leg1b.p1.lineTowards(bdir - dir * 90, blen * 0.4).draw(settings);
+        markRightAngle(leg2a.reverse(), dir, settings);
+        markRightAngle(leg1a.reverse(), -dir, settings);
+        markAngle(base.reverse(), leg1b, 3, dir < 0, settings);
+        markAngle(leg1b.reverse(), leg2b, 3, dir > 0, settings);
+        if (dir < 0) {
+            return leg2b.reverse();
+        }
+        else {
+            return leg2b;
+        }
+    }
+    let base = l10.p1.lineTowards(210, 100).reverse().draw();
+    for (let i = 0; i < 20; i++) {
+        base = drawLayer(base, (-1) ** i, { scale: 0.8 ** i });
+    }
+    const top = l10.p2.lineTowards(210, 100).draw();
+    const pt = top.p2;
+    const triA = pt.lineTowards(180, 1 * 60).draw();
+    const triB = triA.p2.lineTowards(90, 2 * 60).draw();
+    const triH = line(triA.p1, triB.p2).draw();
+    triB.mid().lineUntilIntersect(0, triH).draw();
+    markHatches(triA, 2);
+    markHatches(triB, 2, triB.vec().length() / 4 - 15);
+    markHatches(triB, 2, -triB.vec().length() / 4);
+    markRightAngle(triB, -1);
+    markAngle(triB.reverse(), triH.reverse(), 3);
+    return l10;
+}
+const _l10 = p10();
+function p11() {
+    const l11 = center.moveTowards(330, 200).lineTowards(330, 20 * 11).draw();
+    const asinRcpSqrt5 = invdegRel(Math.asin(1 / Math.sqrt(5)));
+    const rightHyp = line(l11.p2.moveTowards(180, 20 * Math.sqrt(5)), l11.p2.moveTowards(0, 20 * Math.sqrt(5))).draw();
+    const leftHyp = line(...[rightHyp.p1, rightHyp.p2].map(v => v.moveTowards(-90, 2 * 20 * Math.sqrt(5))));
+    const leg0 = rightHyp.p1.lineTowards(0 - asinRcpSqrt5, 4 * 20).draw();
+    const leg1 = rightHyp.p2.lineTowards(270 - asinRcpSqrt5, 4 * 20).draw();
+    const leg2 = leftHyp.p2.lineTowards(180 - asinRcpSqrt5, 4 * 20).draw();
+    const leg3 = leftHyp.p1.lineTowards(90 - asinRcpSqrt5, 4 * 20).draw();
+    [leg0, leg1, leg2, leg3].map(v => {
+        markRightAngle(v.reverse(), -1);
+        markHatches(v, 1, 20);
+        markHatches(v, 1, -20);
+    });
+    line(rightHyp.mid(), rightHyp.p2).drawArc(line(rightHyp.mid(), rightHyp.p1));
+    function drawOpt(o, angle, scale, extract) {
+        const angleRad = degRel(angle);
+        const ground = o.lineTowards(90, scale).draw();
+        const leftWall = o.lineTowards(0, scale * 2).draw();
+        const rightWall = ground.p2.lineTowards(0, scale).draw();
+        markRightAngle(leftWall, 1);
+        markRightAngle(rightWall, -1);
+        const lowPointOffset = vector(scale * Math.sin(angleRad), scale * ((Math.tan(angleRad) - Math.sin(angleRad) * Math.tan(angleRad)) - 1));
+        const lowPoint = o.moveTo(lowPointOffset);
+        const wedge1 = lowPoint.lineTowards(-angle, scale).draw();
+        const wedge2 = lowPoint.lineTowards(90 - angle, scale).draw();
+        wedge1.drawArc(wedge2);
+        if (extract) {
+            const move = o.lineTowards(90, lowPointOffset.x);
+            const mark = move.p2.lineTowards(0, 50).draw();
+            markHatches(move, 4, 4);
+        }
+    }
+    const scale = 2 * Math.sqrt(5) * 20;
+    const orig1 = leftHyp.p1.moveTowards(-90, scale);
+    const orig2 = orig1.moveTowards(-90, scale + 80);
+    drawOpt(orig1, invdegRel(Math.asin((Math.sqrt(5) - 1) / 2)), scale, true);
+    drawOpt(orig2, 5, scale);
+    return l11;
+}
+const _l11 = p11();
+[_l1, _l2, _l3, _l4, _l5, _l6, _l7, _l8, _l9, _l10, _l11].forEach(v => v.draw({ profile: "important" }));
 // ref lines
 for (let i = 0; i < 12; i++) {
-    center.lineTowards(i * 30, 180).draw("debug");
+    center.lineTowards(i * 30, 180).draw({ profile: "debug" });
 }
