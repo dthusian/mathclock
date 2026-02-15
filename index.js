@@ -622,7 +622,7 @@ function draw() {
     }
     const _l11 = p11();
     function p12() {
-        const l12 = center.moveTowards(0, 220).lineTowards(0, 240).draw();
+        const l12 = center.moveTowards(0, 240).lineTowards(0, 240).draw();
         function drawLayer(base, index, scale, lineScale) {
             const settings = { scale: lineScale };
             const ratio = 2 / 3;
@@ -632,11 +632,23 @@ function draw() {
             const tri2a = tri1a.p2.lineTowards(90, 40).draw(settings);
             const tri2b = tri2a.p2.lineTowards(0, 40 * scale).draw(settings);
             const tri2h = line(tri2a.p1, tri2b.p2).draw(settings);
-            markHatches(tri2a, 1, 7, settings);
+            const tri2bext = tri2b.p2.lineTowards(0, (index + 1) * 40 * (scale * ratio) - 40 * scale).draw(settings);
+            markHatches(tri2a, 1, 0, settings);
+            markRightAngle(tri1a, 1, settings);
+            markRightAngle(tri2b, -1, settings);
+            const sq1 = tri2b.p1.lineTowards(90, 40 * scale).draw(settings);
+            const sq2 = tri2b.p2.lineTowards(90, 40 * scale).draw(settings);
+            const sq3 = line(sq1.p2, sq2.p2).draw(settings);
+            const ls = line(sq1.mid(), sq2.mid()).mid().lineTowards(0, 15 * scale).drawCircle(settings);
+            const sq1ext = sq1.p2.lineTowards(90, 40 * (1 - scale)).draw(settings);
+            const sq2ext = sq2.p2.lineTowards(90, 40 * (1 - scale)).draw(settings);
+            const tri3a = line(sq1ext.p2, sq2ext.p2).draw(settings);
+            const tri3b = sq2ext.p2.lineTowards(90, 40 * scale * ratio).draw(settings);
+            const tri3h = line(tri3a.p1, tri3b.p2).draw(settings);
             return tri1b.p2;
         }
-        markHatches(l12.p1.moveTowards(0, 40 * 2 / 3).lineTowards(90, 40), 1, 0);
         let base = l12.p1;
+        markHatches(base.moveTowards(0, 40 * 2 / 3).lineTowards(90, 40), 1, 0);
         for (let i = 1; i <= 50; i++) {
             base = drawLayer(base, i, (2 / 3) ** i, Math.min((3 / 4) ** (i - 1), 1));
         }
