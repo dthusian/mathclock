@@ -749,26 +749,45 @@ function draw() {
       markRightAngle(tri1a, 1, settings);
       markRightAngle(tri2b, -1, settings);
 
-      const sq1 = tri2b.p1.lineTowards(90, 40 * scale).draw(settings);
-      const sq2 = tri2b.p2.lineTowards(90, 40 * scale).draw(settings);
-      const ls = line(sq1.mid(), sq2.mid()).mid().lineTowards(0, 17 * scale).drawCircle(settings);
-      const sq1ext = sq1.p2.lineTowards(90, 40 * (1 - scale)).draw(settings);
-      const sq2ext = sq2.p2.lineTowards(90, 40 * (1 - scale)).draw(settings);
-      const tri3a = line(sq1ext.p2, sq2ext.p2).draw(settings);
-      const tri3b = sq2ext.p2.lineTowards(90, 40 * scale * ratio).draw(settings);
-      const tri3h = line(tri3a.p1, tri3b.p2).draw(settings);
-      markRightAngle(sq2ext.reverse(), -1, settings);
-      markAngle(tri3a, tri3h, 4, false, settings);
-      const tri3ext1 = tri3b.p1.lineTowards(0, (index + 1) * 40 * (scale * ratio) - 40 * scale).draw(settings);
-      const tri3ext2 = tri3b.p2.lineTowards(0, (index + 1) * 40 * (scale * ratio) - 40 * scale + 40 * (scale * ratio)).draw(settings);
+      const nextScale = scale * ratio;
+      const nextIndex = index + 1;
+      const horiz1 = tri2b.p1.lineTowards(90, 40).draw(settings);
+      const horiz2 = tri2b.p2.lineTowards(90, 40).draw(settings);
+      const ls = tri2b.mid().moveTowards(90, 20 * scale).lineTowards(0, 17 * scale).drawCircle(settings);
+      const rect0 = horiz2.p2.lineTowards(90, 40 * nextScale).draw(settings);
+      const rect2 = horiz1.p2.lineTowards(90, 40 * nextScale).draw(settings);
+      const rect1 = line(rect0.p2, rect2.p2).draw(settings);
+      const rect3 = line(rect0.p1, rect2.p1).draw(settings);
+      //markRightAngle(horiz2.reverse(), -1, settings);
+      const split0h = rect3.p1.moveTo(rect3.vec().scale(1/3)).lineTowards(90, 40 * nextScale).draw(settings);
+      const split1h = rect3.p1.moveTo(rect3.vec().scale(2/3)).lineTowards(90, 40 * nextScale).draw(settings);
+      const split2v = line(rect0.mid(), rect2.mid()).draw(settings);
+      const vert1 = rect0.p1.lineTowards(0, nextIndex * 40 * nextScale - 40 * scale).draw(settings);
+      const vert2 = rect0.p2.lineTowards(0, nextIndex * 40 * nextScale - 40 * scale + 40 * nextScale).draw(settings);
       
+      if(index === 1) {
+        markHatches(tri1a, 1, 0, settings);
+        const vert3 = tri2a.p2.lineTowards(180, 50).draw(settings);
+        const vert4 = tri2a.p2.moveTowards(90, 40 * scale).lineTowards(180, 50).draw(settings);
+        const vert5 = vert4.p1.lineTowards(0, 40 * scale).draw(settings);
+        const l: [number | Line, number | Line, number | Line, number | Line] = [0, 0, 0, 0];
+        for(let i = 0; i < 4; i++) {
+          l[i] = line(vert3.p2.moveTowards(0, i * 40 / 3), vert4.p2.moveTowards(0, i * 40 / 3)).draw(settings);
+        }
+        const l2 = l as [Line, Line, Line, Line];
+        const lv = line(l2[0].mid(), l2[3].mid()).draw(settings);
+        const horiz3 = l2[0].p1.lineTowards(-90, 10).draw(settings);
+        const horiz4 = l2[3].p1.lineTowards(-90, 10).draw(settings);
+        const cap = line(horiz3.p2, horiz4.p2).draw(settings);
+        markHatches(cap, 1, 0, settings);
+      }
+
       return tri1b.p2;
     }
 
     let base = l12.p1;
-    markHatches(base.moveTowards(0, 40 * 2/3).lineTowards(90, 40), 1, 0);
     for(let i = 1; i <= 50; i++) {
-      base = drawLayer(base, i, (2/3) ** i, Math.min((3/4) ** i, 1));
+      base = drawLayer(base, i, (2/3) ** i, (3/4) ** i);
     }
 
     return l12;
