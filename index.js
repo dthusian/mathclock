@@ -35,6 +35,10 @@ function setDrawSettings(settings) {
         ctx.lineWidth = 4 * ((settings === null || settings === void 0 ? void 0 : settings.scale) || 1);
     }
 }
+function clearCanvas() {
+    ctx.fillStyle = "white";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+}
 class Vector {
     constructor(x, y) {
         this.x = x;
@@ -264,12 +268,13 @@ function drawText(text, pos, settings) {
     setDrawSettings(settings);
     ctx.fillStyle = ctx.strokeStyle;
     ctx.font = "bold 20px sans-serif";
-    ctx.textAlign = "center";
+    ctx.textAlign = (settings === null || settings === void 0 ? void 0 : settings.textAlign) || "center";
     ctx.fillText(text, pos.x, pos.y);
 }
 // ====== application ======
 function draw() {
     const large = 10000;
+    clearCanvas();
     function p1_p2() {
         // 1->2
         // solve ssa triangle so that line segment is trisected
@@ -489,16 +494,16 @@ function draw() {
         const l8cmp1 = n.p2.moveTowards(240, 20 * Math.cos(Math.asin(3 / 4)) * 4).lineTowards(150, 3 * 20).draw();
         const l8cmp2 = l8cmp1.p2.lineTowards(150, 2 * 20).draw();
         markHatches(l8cmp1, 2);
-        markHatches(l8cmp2, 1);
+        markHatches(l8cmp2, 1, 5);
         // indicate l9 < n
         n.drawArc(l9.reverse(), true);
         // => 3 < r
         // => 2r < l8 < 10
-        // => 4/sqrt(3) * r < l9 < n 
+        // => 4/sqrt(3) * r < l9 < n
         return [l8, l9];
     }
     const [_l8, _l9] = p8_p9();
-    function p10() {
+    function p10(l9) {
         const l10 = center.moveTowards(300, 200).lineTowards(300, 200);
         function drawLayer(base, dir, settings) {
             if (dir < 0) {
@@ -524,12 +529,14 @@ function draw() {
             }
         }
         let base = l10.p1.lineTowards(210, 100).reverse().draw();
+        const baseExt = base.p2.lineUntilIntersect(210, l9).draw();
         for (let i = 0; i < 25; i++) {
             base = drawLayer(base, (-1) ** i, { scale: 0.8 ** i });
         }
         const top = l10.p2.lineTowards(210, 100).draw();
         const pt = top.p2;
         const triA = pt.lineTowards(180, 1 * 60).draw();
+        const triAext = triA.p1.lineUntilIntersect(180, l9).draw();
         const triB = triA.p2.lineTowards(90, 2 * 60).draw();
         const triH = line(triA.p1, triB.p2).draw();
         triB.mid().lineUntilIntersect(0, triH).draw();
@@ -542,8 +549,8 @@ function draw() {
         markHatches(initMark, 1, 0, { profile: "important" });
         return l10;
     }
-    const _l10 = p10();
-    function p11() {
+    const _l10 = p10(_l9);
+    function p11(l10) {
         const l11 = center.moveTowards(330, 200).lineTowards(330, 20 * 11);
         const asinRcpSqrt5 = invdegRel(Math.asin(1 / Math.sqrt(5)));
         // 2sqrt5 indicator
@@ -553,9 +560,10 @@ function draw() {
         const tri1b = tri1h.p2.lineTowards(270 - asinRcpSqrt5, 2 * 20).draw();
         markHatches(tri1b, 1, 0);
         markRightAngle(tri1b.reverse(), 1);
-        markHatches(tri1a, 1, 20);
-        markHatches(tri1a, 1, -20);
-        markHatches(tri1h, 5, 5);
+        //markHatches(tri1a, 1, 20);
+        //markHatches(tri1a, 1, -20);
+        markAngle(tri1a, tri1h, 3);
+        markHatches(tri1h, 5, 12);
         const tri1extDown = line(tri1hext.p1, tri1h.p1).draw();
         const tri1extUp = line(tri1hext.p2, tri1h.p2).draw();
         [tri1extDown, tri1extUp.reverse(), tri1hext.reverse(), tri1h].map(v => markRightAngle(v, 1));
@@ -610,17 +618,21 @@ function draw() {
         const part1 = l11.p1.lineTowards(330, sqrt5q2 * 20);
         const part2 = part1.p2.lineTowards(330, p2 * 20);
         const part3 = part2.p2.lineTowards(330, sqrt5q2 * 20);
+        part1.p2.lineUntilIntersect(240, l10).draw();
+        part1.p1.lineUntilIntersect(240, l10).draw();
+        line(center, part3.p1).drawArc(l10, true);
+        line(center, part3.p2).drawArc(l10, true);
         markHatches(part1, 4, 0, { profile: "important" });
         markHatches(part3, 4, 0, { profile: "important" });
-        const pent1 = part2.p1.lineTowards(366, 40).draw();
-        const pent2 = pent1.p2.lineTowards(366 - 72, 40).draw();
-        const pent3 = pent2.p2.lineTowards(366 - 72 * 2, 40).draw();
-        const pent4 = pent3.p2.lineTowards(366 - 72 * 3, 40).draw();
-        const pent5 = pent4.p2.lineTowards(366 - 72 * 4, 40).draw();
+        const pent1 = part2.p1.lineTowards(330 - 36, 40).draw();
+        const pent2 = pent1.p2.lineTowards(330 - 36 + 72, 40).draw();
+        const pent3 = pent2.p2.lineTowards(330 - 36 + 72 * 2, 40).draw();
+        const pent4 = pent3.p2.lineTowards(330 - 36 + 72 * 3, 40).draw();
+        const pent5 = pent4.p2.lineTowards(330 - 36 + 72 * 4, 40).draw();
         [pent1, pent2, pent3, pent4, pent5].map(v => markHatches(v, 1));
         return l11;
     }
-    const _l11 = p11();
+    const _l11 = p11(_l10);
     function p12() {
         const l12 = center.moveTowards(0, 240).lineTowards(0, 240).draw();
         function drawLayer(base, index, scale, lineScale) {
@@ -645,7 +657,6 @@ function draw() {
             const rect2 = horiz1.p2.lineTowards(90, 40 * nextScale).draw(settings);
             const rect1 = line(rect0.p2, rect2.p2).draw(settings);
             const rect3 = line(rect0.p1, rect2.p1).draw(settings);
-            //markRightAngle(horiz2.reverse(), -1, settings);
             const split0h = rect3.p1.moveTo(rect3.vec().scale(1 / 3)).lineTowards(90, 40 * nextScale).draw(settings);
             const split1h = rect3.p1.moveTo(rect3.vec().scale(2 / 3)).lineTowards(90, 40 * nextScale).draw(settings);
             const split2v = line(rect0.mid(), rect2.mid()).draw(settings);
@@ -677,9 +688,31 @@ function draw() {
     }
     const _l12 = p12();
     [_l1, _l2, _l3, _l4, _l5, _l6, _l7, _l8, _l9, _l10, _l11, _l12].forEach(v => v.draw({ profile: "important" }));
-    // ref lines
-    for (let i = 0; i < 12; i++) {
-        center.lineTowards(i * 30, 180).draw({ profile: "debug" });
+    function credits(base) {
+        const text = [
+            "dthusian's",
+            "entry",
+            "dr.zye's",
+            "math",
+            "clock",
+            "contest",
+            "2026"
+        ];
+        text.forEach((v, i) => drawText(v, base.moveTowards(180, i * 30), { textAlign: "right" }));
     }
+    credits(center.moveTowards(0, 470).moveTowards(-90, 7));
+    function clockHands() {
+        const now = new Date();
+        const seconds = now.getSeconds() + now.getMilliseconds() / 1000;
+        const minutes = now.getMinutes() + seconds / 60;
+        const hour = now.getHours() + minutes / 60;
+        center.lineTowards(6 * minutes, 160).draw({ scale: 2 });
+        center.lineTowards(20 * hour, 70).draw({ scale: 2 });
+        center.lineTowards(6 * seconds, 140).draw({ scale: 0.5, profile: "important" });
+    }
+    clockHands();
 }
-draw();
+window.requestAnimationFrame(function animate() {
+    draw();
+    window.requestAnimationFrame(animate);
+});
