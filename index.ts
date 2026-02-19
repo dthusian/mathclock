@@ -831,7 +831,7 @@ function draw() {
     const minutes = now.getMinutes() + seconds / 60;
     const hour = now.getHours() + minutes / 60;
     center.lineTowards(6 * minutes, 160).draw({ scale: 2 });
-    center.lineTowards(20 * hour, 70).draw({ scale: 2 });
+    center.lineTowards(30 * hour, 70).draw({ scale: 2 });
     center.lineTowards(6 * seconds, 140).draw({ scale: 0.5, profile: "important" });
   }
   
