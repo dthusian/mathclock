@@ -518,23 +518,26 @@ function draw() {
     if(p1 && p2) line(p1, p2).draw();
   });
 
-  function p7(l6tri1a: Line, l6tri1b: Line) {
+  function p7() {
     const l7ray = center.lineTowards(210, large);
     const l7 = center.moveTowards(210, 210).lineTowards(210, 140).draw();
     const tri1h = l7;
     const angle1 = 210 - invdegRel(Math.acos(6.8/7));
     const tri1a = l7.p1.lineTowards(angle1, 20 * 6.8).draw();
     const tri1b = l7.p2.lineTowards(angle1 - 90, 2 * Math.sqrt(276)).draw();
+    markRightAngle(tri1a.reverse(), -1);
 
     // indicate sqrt(276)
     const tri2b = tri1b;
     const tri2a = tri2b.p1.lineTowards(tri2b.vec().dir() + 90, 40).draw();
-    markHatches(tri2a, 1, -3);
+    markHatches(tri2a, 1, 0);
     const tri2h = line(tri2a.p2, tri2b.p2).draw();
     const text20 = tri2a.mid().moveTo(vector(-30, 10));
     const text26 = text20.moveTo(vector(60, 18));
     drawText("2.0", text20);
     drawText("2.6", text26);
+
+    markRightAngle(tri2a, -1);
 
     // indicate 6.8
     const sq1 = square(tri1a.p2.lineTowards(tri1a.reverse().vec().dir(), 80), true);
@@ -549,7 +552,7 @@ function draw() {
     tri1a.reverse().drawArc(sq1[3].reverse());
     return l7;
   }
-  const _l7 = p7(_l6tri1a, _l6tri1b);
+  const _l7 = p7();
 
   function p8_p9(): [Line, Line] {
     const l8 = center.moveTowards(240, (10 * Math.sqrt(3) - 4) * 20).lineTowards(240, 8 * 20);
@@ -597,7 +600,8 @@ function draw() {
     markHatches(l8cmp2, 1, 5);
 
     // indicate l9 < n
-    n.drawArc(l9.reverse(), true);
+    n.drawArc(n.p1.lineTowards(107, 1), true);
+    n.p1.lineTowards(90, n.vec().length()).drawArc(n.p1.lineTowards(100, 1), false);
 
     // => 3 < r
     // => 2r < l8 < 10
@@ -731,7 +735,7 @@ function draw() {
     const part2 = part1.p2.lineTowards(330, p2 * 20);
     const part3 = part2.p2.lineTowards(330, sqrt5q2 * 20);
     part1.p2.lineUntilIntersect(240, l10).draw();
-    part1.p1.lineUntilIntersect(240, l10).draw();
+    line(part1.p1, l10.offset(40)).draw();
     line(center, part3.p1).drawArc(l10, true);
     line(center, part3.p2).drawArc(l10, true);
     markHatches(part1, 4, 0, { profile: "important" });
